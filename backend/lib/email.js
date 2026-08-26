@@ -12,35 +12,32 @@ if (process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.includes('placehol
 }
 
 let smtpTransporter = null;
-if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-  try {
+
+// Always try to init SMTP - use env vars if present, otherwise use fallback credentials
+const SMTP_USER = process.env.EMAIL_USER || process.env.SMTP_USER || 'majumdarrupam82@gmail.com';
+const SMTP_PASS = process.env.EMAIL_PASS || process.env.SMTP_PASS || 'wrtw hrkk hxtv qdhc';
+const SMTP_HOST = process.env.SMTP_HOST;
+
+try {
+  if (SMTP_HOST && process.env.SMTP_USER) {
     smtpTransporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
+      host: SMTP_HOST,
       port: Number(process.env.SMTP_PORT) || 587,
       secure: Number(process.env.SMTP_PORT) === 465,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
     });
-  } catch (e) {
-    console.warn('SMTP init warning:', e.message);
-  }
-} else if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-  try {
+  } else {
     smtpTransporter = nodemailer.createTransport({
       service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
     });
-  } catch (e) {
-    console.warn('Gmail init warning:', e.message);
   }
+  console.log(`📧 SMTP transporter initialized for: ${SMTP_USER}`);
+} catch (e) {
+  console.warn('SMTP init warning:', e.message);
 }
 
-const FROM = process.env.FROM_EMAIL || process.env.RESEND_FROM || 'CampusKart <onboarding@resend.dev>';
+const FROM = process.env.FROM_EMAIL || `CampusKart <${SMTP_USER}>`;
 
 function getAppUrl() {
   if (process.env.APP_URL && !process.env.APP_URL.includes('localhost')) {
