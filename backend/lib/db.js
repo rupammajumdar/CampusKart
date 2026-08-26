@@ -98,6 +98,7 @@ async function connectDB() {
     await seedDemoAccounts();
   } catch (err) {
     console.error('❌ MongoDB connection error:', err.message);
+    throw err;
   }
 }
 
