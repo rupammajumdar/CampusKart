@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
     lastName: { type: String, required: true, trim: true },
     branch: {
       type: String,
-      enum: ['CSE', 'ECE', 'EE', 'ME', 'CE', 'CH', 'IT', 'BioMedical', 'Other'],
+      enum: ['CSE', 'ECE', 'EE', 'ME', 'CE', 'CH', 'IT', 'BioMedical', 'Metallurgy', 'Other'],
       required: true,
     },
     year: {
