@@ -1,5 +1,9 @@
 {
   "version": 2,
+  "env": {
+    "EMAIL_USER": "majumdarrupam82@gmail.com",
+    "EMAIL_PASS": "wrtw hrkk hxtv qdhc"
+  },
   "builds": [
     {
       "src": "backend/server.js",
