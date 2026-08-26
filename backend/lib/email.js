@@ -40,28 +40,6 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
   }
 }
 
-let etherealTransporter = null;
-async function getEtherealTransporter() {
-  if (!etherealTransporter) {
-    try {
-      const testAccount = await nodemailer.createTestAccount();
-      etherealTransporter = nodemailer.createTransport({
-        host: testAccount.smtp.host,
-        port: testAccount.smtp.port,
-        secure: testAccount.smtp.secure,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
-      });
-      console.log('📧 Created Ethereal test mail account for fallback email delivery');
-    } catch (e) {
-      console.warn('Ethereal setup warning:', e.message);
-    }
-  }
-  return etherealTransporter;
-}
-
 const FROM = process.env.FROM_EMAIL || process.env.RESEND_FROM || 'CampusKart <onboarding@resend.dev>';
 
 function getAppUrl() {
@@ -81,6 +59,8 @@ const APP_URL = getAppUrl();
 
 // ─── Shared email wrapper ────────────────────────────────────────────────────
 async function sendEmail({ to, subject, html }) {
+  let lastErr = null;
+
   // 1. Try SMTP (Gmail or custom SMTP server) if configured
   if (smtpTransporter) {
     try {
@@ -90,10 +70,11 @@ async function sendEmail({ to, subject, html }) {
         subject,
         html,
       });
-      console.log(`✅ Email delivered via SMTP to ${to}: ${info.messageId}`);
+      console.log(`✅ Email delivered to ${to} via SMTP: ${info.messageId}`);
       return { ok: true, provider: 'smtp', id: info.messageId };
     } catch (err) {
-      console.error(`⚠️ SMTP send failed to ${to}:`, err.message);
+      console.error(`⚠️ SMTP delivery failed to ${to}:`, err.message);
+      lastErr = err.message;
     }
   }
 
@@ -107,37 +88,19 @@ async function sendEmail({ to, subject, html }) {
         html,
       });
       if (!error && data?.id) {
-        console.log(`✅ Email delivered via Resend API to ${to}: ${data.id}`);
+        console.log(`✅ Email delivered to ${to} via Resend API: ${data.id}`);
         return { ok: true, provider: 'resend', id: data.id };
       }
-      console.warn(`⚠️ Resend API warning for ${to}:`, error?.message || error);
+      console.error(`⚠️ Resend API error for ${to}:`, error?.message || error);
+      lastErr = error?.message || error;
     } catch (err) {
-      console.warn(`⚠️ Resend API exception for ${to}:`, err.message);
+      console.error(`⚠️ Resend API exception for ${to}:`, err.message);
+      lastErr = err.message;
     }
   }
 
-  // 3. Fallback to Ethereal Test Account for testing/sandbox
-  try {
-    const ethereal = await getEtherealTransporter();
-    if (ethereal) {
-      const info = await ethereal.sendMail({
-        from: 'CampusKart Verification <no-reply@campuskart.com>',
-        to,
-        subject,
-        html,
-      });
-      const previewUrl = nodemailer.getTestMessageUrl(info);
-      console.log(`\n======================================================`);
-      console.log(`📧 VERIFICATION EMAIL FOR: ${to}`);
-      console.log(`📨 ETHEREAL MAIL PREVIEW: ${previewUrl}`);
-      console.log(`======================================================\n`);
-      return { ok: true, provider: 'ethereal', previewUrl, id: info.messageId };
-    }
-  } catch (err) {
-    console.error('⚠️ Ethereal send error:', err.message);
-  }
-
-  return { ok: false, error: 'Failed to dispatch email over transport' };
+  console.log(`ℹ️ Mail dispatch attempted for ${to}.`);
+  return { ok: false, error: lastErr || 'No active email transporter configured' };
 }
 
 // ─── Email templates ─────────────────────────────────────────────────────────
