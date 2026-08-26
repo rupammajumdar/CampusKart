@@ -53,14 +53,25 @@ app.use('/uploads', express.static(uploadsDir));
 
 // ─── API routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
 app.use('/api/users', userRoutes);
+app.use('/users', userRoutes);
+
 app.use('/api/listings', listingRoutes);
+app.use('/listings', listingRoutes);
+
 app.use('/api/messages', messageRoutes);
+app.use('/messages', messageRoutes);
+
 app.use('/api/transactions', transactionRoutes);
+app.use('/transactions', transactionRoutes);
+
 app.use('/api/admin', adminRoutes);
+app.use('/admin', adminRoutes);
 
 // ─── Health check ─────────────────────────────────────────────────────────────
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
