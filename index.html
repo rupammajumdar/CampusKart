@@ -185,6 +185,8 @@
           </div>
           <button class="btn btn-primary btn-full" type="submit">Sign In</button>
         </form>
+
+        <div id="verify-alert-box" style="display:none; margin-top:16px; padding:14px; background:#fff8e6; border:1px solid #ffe58f; border-radius:12px; font-size:13px; text-align:left;"></div>
       </div>
 
       <!-- Sign Up panel -->
@@ -194,8 +196,8 @@
         <form class="form-stack" id="signup-form" onsubmit="handleSignUp(event)">
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
             <div class="form-group">
-              <label class="form-label" for="su-firstname">First Name</label>
-              <input class="input-field" type="text" id="su-firstname" placeholder="Ananya" required/>
+              <label class="form-label" for="su-firstname">First Name <span class="required">*</span></label>
+              <input class="input-field" type="text" id="su-firstname" placeholder="Rahul" required/>
             </div>
             <div class="form-group">
               <label class="form-label" for="su-lastname">Last Name</label>
@@ -276,6 +278,42 @@
     document.getElementById('signup-panel').style.display = isSignIn ? 'none' : 'block';
   }
 
+  function showVerificationAlert(email, link, isSignUp = false) {
+    const alertBox = document.getElementById('verify-alert-box');
+    if (!alertBox) return;
+    alertBox.style.display = 'block';
+    
+    let html = `
+      <div style="display:flex; align-items:flex-start; gap:10px; color:#856404;">
+        <span class="material-symbols-outlined" style="font-size:22px; color:#d97706; margin-top:2px;">mark_email_unread</span>
+        <div style="flex:1;">
+          <strong style="font-size:14px; display:block; margin-bottom:4px; color:#92400e;">${isSignUp ? 'Account Created! Verification Required' : 'Email Verification Required'}</strong>
+          <p style="margin:0 0 10px 0; color:#78350f; font-size:12px; line-height:1.4;">
+            Please verify your email (<strong>${email}</strong>) before signing in.
+          </p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            ${link ? `<a href="${link}" class="btn btn-primary" style="padding:6px 14px; font-size:12px; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><span class="material-symbols-outlined" style="font-size:16px;">verified</span> Verify Email Now</a>` : ''}
+            <button type="button" onclick="resendVerificationLink('${email}')" class="btn" style="padding:6px 14px; font-size:12px; background:#ffffff; color:#6c47ff; border:1px solid #c7d2fe; display:inline-flex; align-items:center; gap:4px;"><span class="material-symbols-outlined" style="font-size:16px;">send</span> Resend Link</button>
+          </div>
+        </div>
+      </div>
+    `;
+    alertBox.innerHTML = html;
+  }
+
+  async function resendVerificationLink(email) {
+    API.toast('Resending verification email…', 'info');
+    const res = await API.auth.resendVerification(email);
+    if (res.ok || res.message) {
+      API.toast(res.message || 'Verification email resent! Check your inbox.', 'success');
+      if (res.verificationLink) {
+        showVerificationAlert(email, res.verificationLink);
+      }
+    } else {
+      API.toast(res.error || 'Failed to resend email', 'error');
+    }
+  }
+
   // ── Magic link sign in ────────────────────────────────────────────────────
   async function handleSignIn(e) {
     e.preventDefault();
@@ -315,6 +353,7 @@
       setTimeout(() => window.location.href = targetPage, 800);
     } else if (res.needsVerification) {
       API.toast('Please verify your email first. Check your inbox.', 'error');
+      showVerificationAlert(email, res.verificationLink);
     } else {
       API.toast(res.error || 'Login failed', 'error');
     }
@@ -341,7 +380,8 @@
 
     if (res.ok || res.userId) {
       API.toast('Account created! Check your email inbox to verify your account.', 'success');
-      setTimeout(() => switchTab('signin'), 2000);
+      showVerificationAlert(email, res.verificationLink, true);
+      setTimeout(() => switchTab('signin'), 1500);
     } else {
       API.toast(res.error || 'Registration failed', 'error');
     }

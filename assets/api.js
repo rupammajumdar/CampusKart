@@ -105,6 +105,7 @@ const API = (() => {
   const auth = {
     register: (data) => post('/auth/register', data),
     login: (email, password) => post('/auth/login', { email, password }),
+    resendVerification: (email) => post('/auth/resend-verification', { email }),
     magicLink: (email) => post('/auth/magic-link', { email }),
     forgotPassword: (email) => post('/auth/forgot-password', { email }),
     resetPassword: (token, newPassword) => post('/auth/reset-password', { token, newPassword }),

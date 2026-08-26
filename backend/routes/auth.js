@@ -8,6 +8,7 @@ const {
   sendVerificationEmail,
   sendMagicLinkEmail,
   sendPasswordResetEmail,
+  getAppUrl,
 } = require('../lib/email');
 
 const TOKEN_EXPIRY_MS = (process.env.EMAIL_TOKEN_EXPIRES_MINUTES || 30) * 60 * 1000;
@@ -54,15 +55,53 @@ router.post('/register', async (req, res) => {
       verificationTokenExpires: expires,
     });
 
-    await sendVerificationEmail(user, token);
+    const emailResult = await sendVerificationEmail(user, token);
 
     res.status(201).json({
-      message: 'Account created! Please check your email to verify your account.',
+      message: 'Account created! Please check your email inbox to verify your account.',
       userId: user._id,
+      verificationLink: emailResult?.link,
     });
   } catch (err) {
     console.error('Register error:', err);
     res.status(500).json({ error: 'Registration failed. Please try again.' });
+  }
+});
+
+// ─── POST /api/auth/resend-verification ───────────────────────────────────────
+router.post('/resend-verification', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email address is required' });
+    }
+
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
+    if (!user) {
+      return res.json({ message: 'If this email is registered, a verification link has been sent.' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ error: 'This account is already verified. You can sign in.' });
+    }
+
+    let token = user.verificationToken;
+    if (!token || !user.verificationTokenExpires || user.verificationTokenExpires < new Date()) {
+      token = uuidv4();
+      user.verificationToken = token;
+      user.verificationTokenExpires = new Date(Date.now() + TOKEN_EXPIRY_MS);
+      await user.save();
+    }
+
+    const emailResult = await sendVerificationEmail(user, token);
+
+    res.json({
+      message: 'Verification link has been sent to your email!',
+      verificationLink: emailResult?.link,
+    });
+  } catch (err) {
+    console.error('Resend verification error:', err);
+    res.status(500).json({ error: 'Failed to resend verification email' });
   }
 });
 
@@ -80,9 +119,9 @@ router.get('/verify-email', async (req, res) => {
     if (!user) {
       return res.status(400).send(`
         <html><body style="font-family:sans-serif;text-align:center;padding:60px">
-          <h2>❌ Invalid or expired link</h2>
+          <h2 style="color:#e53e3e">❌ Invalid or expired link</h2>
           <p>This verification link has expired or already been used.</p>
-          <a href="/index.html">Back to sign in</a>
+          <a href="/index.html" style="color:#6c47ff;font-weight:600">Back to sign in</a>
         </body></html>`);
     }
 
@@ -141,7 +180,7 @@ router.post('/login', async (req, res) => {
           isLister: true,
         });
       } else if (cleanEmail === 'student2@gmail.com' && password === 'student123456') {
-        const hash = await bcrypt.hash('student123456', 10);
+        const hash = await bcrypt.hash('student2@gmail.com', 10);
         user = await User.create({
           firstName: 'Priya',
           lastName: 'Sharma',
@@ -163,8 +202,20 @@ router.post('/login', async (req, res) => {
     if (!ok) return res.status(401).json({ error: 'Invalid email or password' });
 
     if (!user.isVerified) {
-      user.isVerified = true;
-      await user.save();
+      let token = user.verificationToken;
+      if (!token || !user.verificationTokenExpires || user.verificationTokenExpires < new Date()) {
+        token = uuidv4();
+        user.verificationToken = token;
+        user.verificationTokenExpires = new Date(Date.now() + TOKEN_EXPIRY_MS);
+        await user.save();
+      }
+      const link = `${getAppUrl()}/api/auth/verify-email?token=${token}`;
+      return res.status(403).json({
+        needsVerification: true,
+        error: 'Your email address is not verified yet. Please check your inbox for the verification link.',
+        email: user.email,
+        verificationLink: link,
+      });
     }
 
     const token = generateJWT(user._id);

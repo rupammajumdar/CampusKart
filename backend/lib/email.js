@@ -84,7 +84,7 @@ async function sendVerificationEmail(user, token) {
   console.log(`📧 VERIFICATION EMAIL FOR: ${user.email}`);
   console.log(`🔗 VERIFICATION LINK: ${link}`);
   console.log(`======================================================\n`);
-  return sendEmail({
+  const result = await sendEmail({
     to: user.email,
     subject: '✅ Verify your CampusKart email',
     html: baseTemplate(`
@@ -95,6 +95,7 @@ async function sendVerificationEmail(user, token) {
       <p style="font-size:13px; color:#8e8e93;">This link expires in <strong>30 minutes</strong>. If you didn't create a CampusKart account, you can safely ignore this email.</p>
     `),
   });
+  return { ...result, link };
 }
 
 // 2. Magic link login
@@ -224,6 +225,8 @@ async function sendNewMessageEmail(recipient, sender, listing) {
 }
 
 module.exports = {
+  getAppUrl,
+  APP_URL,
   sendVerificationEmail,
   sendMagicLinkEmail,
   sendPasswordResetEmail,
