@@ -119,27 +119,24 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-card__icon" style="background:rgba(66,64,229,0.1);">📦</div>
-        <div class="stat-card__num">8</div>
+        <div class="stat-card__num" id="stat-active">0</div>
         <div class="stat-card__label">Active Listings</div>
-        <div class="stat-card__trend">+2 this week</div>
       </div>
       <div class="stat-card">
         <div class="stat-card__icon" style="background:rgba(0,106,98,0.1);">✅</div>
-        <div class="stat-card__num">23</div>
+        <div class="stat-card__num" id="stat-sold">0</div>
         <div class="stat-card__label">Items Sold/Rented</div>
-        <div class="stat-card__trend">All time</div>
       </div>
       <div class="stat-card">
         <div class="stat-card__icon" style="background:rgba(141,74,0,0.1);">💰</div>
-        <div class="stat-card__num">₹4,280</div>
+        <div class="stat-card__num" id="stat-earnings">₹0</div>
         <div class="stat-card__label">Total Earnings</div>
-        <div class="stat-card__trend">This semester</div>
       </div>
       <div class="stat-card">
         <div class="stat-card__icon" style="background:rgba(42,221,205,0.1);">⭐</div>
-        <div class="stat-card__num">4.8</div>
+        <div class="stat-card__num" id="stat-rating">—</div>
         <div class="stat-card__label">Avg. Rating</div>
-        <div class="stat-card__trend">18 reviews</div>
+        <div class="stat-card__trend" id="stat-rating-trend">No reviews</div>
       </div>
     </div>
 
@@ -279,24 +276,63 @@
 <div id="toast-container"></div>
 
 <script>
-function switchTab(tab) {
+function switchDashTab(id) {
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-
-  const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.textContent.toLowerCase().includes(tab));
+  const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => {
+    const t = b.textContent.toLowerCase();
+    if (id === 'active') return t.includes('active') && !t.includes('listings');
+    if (id === 'pending') return t.includes('pending');
+    if (id === 'completed') return t.includes('completed');
+    if (id === 'profile') return t.includes('profile');
+    return false;
+  });
   if (btn) btn.classList.add('active');
-
-  const panel = document.getElementById('tab-' + tab);
+  const panel = document.getElementById('tab-' + id);
   if (panel) panel.classList.add('active');
 }
 
-function showToast(msg) {
-  API.toast(msg, 'info');
+function previewProfilePhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    API.toast('File too large. Max 5MB.', 'error');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    document.getElementById('profile-preview-img').src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
-function toggleExpand(id) {
-  const el = document.getElementById(id);
-  if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
+async function saveProfile(e) {
+  e.preventDefault();
+  const formData = new FormData();
+  formData.append('firstName', document.getElementById('prof-fname').value.trim());
+  formData.append('lastName', document.getElementById('prof-lname').value.trim());
+  formData.append('branch', document.getElementById('prof-branch').value);
+  formData.append('year', document.getElementById('prof-year').value);
+  formData.append('hostel', document.getElementById('prof-hostel').value.trim());
+
+  const fileInput = document.getElementById('profile-photo-input');
+  if (fileInput && fileInput.files[0]) {
+    formData.append('profilePhoto', fileInput.files[0]);
+  }
+
+  const btn = e.target.querySelector('button[type="submit"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  const res = await API.users.update(formData, true);
+  if (btn) { btn.disabled = false; btn.textContent = 'Save Profile Changes'; }
+
+  if (res.ok || res.user) {
+    if (res.user) API.setUser(res.user);
+    API.toast('Profile updated!', 'success');
+    populateProfileData();
+  } else {
+    API.toast(res.error || 'Failed to update profile', 'error');
+  }
 }
 
 function populateProfileData() {
@@ -318,98 +354,108 @@ function populateProfileData() {
   });
 }
 
+let dashboardInterval = null;
+
 async function loadListerDashboard() {
-  const res = await API.listings.myListings();
-  if (res.ok && res.listings) {
-    const active = res.listings.filter(l => ['live', 'reserved'].includes(l.status));
-    const pending = res.listings.filter(l => l.status === 'pending');
-    const completed = res.listings.filter(l => ['sold', 'returned'].includes(l.status));
+  // Load user profile first
+  const userRes = await API.users.me();
+  if (userRes.ok && userRes.user) {
+    API.setUser(userRes.user);
+    populateProfileData();
+  }
 
-    // Update active tab grid
-    const activePanel = document.getElementById('tab-active');
-    if (activePanel) {
-      if (active.length > 0) {
-        activePanel.innerHTML = active.map(item => `
-          <div class="mgmt-card">
-            <div class="mgmt-card__header">
-              <img class="mgmt-card__img" src="${API.listingPhoto(item)}" alt="${item.title}"/>
-              <div class="mgmt-card__info">
-                <div class="mgmt-card__title">${item.title}</div>
-                <div class="mgmt-card__meta">${API.formatPrice(item)} · ${item.category} · <span class="status-badge status-${item.status}">${item.status.toUpperCase()}</span></div>
-              </div>
-              <a href="item.html?id=${item._id}" class="btn btn-outline btn-sm">View Item</a>
-            </div>
-          </div>
-        `).join('');
-      } else {
-        activePanel.innerHTML = `
-          <div style="text-align:center; padding:48px 24px; background:var(--surface-container-lowest); border-radius:16px; border:1px solid var(--outline-variant);">
-            <span class="material-symbols-outlined" style="font-size:48px; color:var(--primary); margin-bottom:12px;">inventory_2</span>
-            <h3 style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; color:var(--on-surface);">No Active Listings</h3>
-            <p style="font-size:13px; color:var(--on-surface-variant); margin-bottom:16px;">Post items for sale or rent to start earning on campus.</p>
-            <a href="list-item.html" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:6px;"><span class="material-symbols-outlined">add_circle</span> List New Item</a>
-          </div>
-        `;
-      }
+  // Load listings and transactions in parallel
+  const [listingsRes, txRes] = await Promise.all([
+    API.listings.myListings(),
+    API.transactions.list(),
+  ]);
+
+  if (listingsRes.ok && listingsRes.listings) {
+    const allListings = listingsRes.listings;
+    const active = allListings.filter(l => ['live', 'reserved'].includes(l.status));
+    const pending = allListings.filter(l => l.status === 'pending');
+    const completed = allListings.filter(l => ['sold', 'returned'].includes(l.status));
+
+    // Compute seller stats
+    const soldCount = completed.length;
+    let totalEarnings = 0;
+    let totalRating = 0;
+    let ratingCount = 0;
+
+    if (txRes.ok && txRes.transactions) {
+      const myId = API.getUser()?._id;
+      const sellerTxns = txRes.transactions.filter(t => {
+        const sellerId = t.seller?._id || t.seller;
+        return sellerId && sellerId.toString() === myId && t.status === 'completed';
+      });
+      totalEarnings = sellerTxns.reduce((sum, t) => sum + (t.totalPrice || t.listing?.price || 0), 0);
+      sellerTxns.forEach(t => {
+        if (t.sellerRating) { totalRating += t.sellerRating; ratingCount++; }
+      });
     }
 
-    // Update pending tab grid
-    const pendingPanel = document.getElementById('tab-pending');
-    if (pendingPanel) {
-      if (pending.length > 0) {
-        pendingPanel.innerHTML = pending.map(item => `
-          <div class="mgmt-card">
-            <div class="mgmt-card__header">
-              <img class="mgmt-card__img" src="${API.listingPhoto(item)}" alt="${item.title}"/>
-              <div class="mgmt-card__info">
-                <div class="mgmt-card__title">${item.title}</div>
-                <div class="mgmt-card__meta">${API.formatPrice(item)} · ${item.category} · <span class="status-badge status-pending">PENDING REVIEW</span></div>
-              </div>
-            </div>
-          </div>
-        `).join('');
-      } else {
-        pendingPanel.innerHTML = `
-          <div style="text-align:center; padding:48px 24px; background:var(--surface-container-lowest); border-radius:16px; border:1px solid var(--outline-variant);">
-            <span class="material-symbols-outlined" style="font-size:48px; color:var(--tertiary); margin-bottom:12px;">schedule</span>
-            <h3 style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; color:var(--on-surface);">No Listings Pending Review</h3>
-            <p style="font-size:13px; color:var(--on-surface-variant);">All your submitted items have been reviewed by admins.</p>
-          </div>
-        `;
-      }
-    }
+    const avgRating = ratingCount > 0 ? (totalRating / ratingCount).toFixed(1) : '—';
 
-    // Update completed tab grid
-    const completedPanel = document.getElementById('tab-completed');
-    if (completedPanel) {
-      if (completed.length > 0) {
-        completedPanel.innerHTML = completed.map(item => `
-          <div class="mgmt-card">
-            <div class="mgmt-card__header">
-              <img class="mgmt-card__img" src="${API.listingPhoto(item)}" alt="${item.title}"/>
-              <div class="mgmt-card__info">
-                <div class="mgmt-card__title">${item.title}</div>
-                <div class="mgmt-card__meta">${API.formatPrice(item)} · ${item.category} · <span class="status-badge status-completed">COMPLETED</span></div>
-              </div>
-            </div>
-          </div>
-        `).join('');
-      } else {
-        completedPanel.innerHTML = `
-          <div style="text-align:center; padding:48px 24px; background:var(--surface-container-lowest); border-radius:16px; border:1px solid var(--outline-variant);">
-            <span class="material-symbols-outlined" style="font-size:48px; color:var(--secondary); margin-bottom:12px;">check_circle</span>
-            <h3 style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; color:var(--on-surface);">No Completed Sales Yet</h3>
-            <p style="font-size:13px; color:var(--on-surface-variant); margin-bottom:16px;">Completed sales and returned rentals will appear here.</p>
-            <a href="list-item.html" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:6px;"><span class="material-symbols-outlined">add_circle</span> List an Item</a>
-          </div>
-        `;
-      }
-    }
+    document.getElementById('stat-active').textContent = active.length;
+    document.getElementById('stat-sold').textContent = soldCount;
+    document.getElementById('stat-earnings').textContent = `₹${totalEarnings.toLocaleString('en-IN')}`;
+    document.getElementById('stat-rating').textContent = avgRating;
+    document.getElementById('stat-rating-trend').textContent = ratingCount > 0 ? `${ratingCount} reviews` : 'No reviews';
+
+    renderListings('tab-active', active, 'active');
+    renderListings('tab-pending', pending, 'pending');
+    renderListings('tab-completed', completed, 'completed');
   }
 }
 
-  populateProfileData();
-  loadListerDashboard();
+function renderListings(panelId, items, type) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+
+  if (items.length === 0) {
+    const emptyConfig = {
+      active: { icon: 'inventory_2', color: 'var(--primary)', title: 'No Active Listings', desc: 'Post items for sale or rent to start earning on campus.' },
+      pending: { icon: 'schedule', color: 'var(--tertiary)', title: 'No Listings Pending Review', desc: 'All your submitted items have been reviewed by admins.' },
+      completed: { icon: 'check_circle', color: 'var(--secondary)', title: 'No Completed Sales Yet', desc: 'Completed sales and returned rentals will appear here.' },
+    };
+    const c = emptyConfig[type];
+    panel.innerHTML = `
+      <div style="text-align:center; padding:48px 24px; background:var(--surface-container-lowest); border-radius:16px; border:1px solid var(--outline-variant);">
+        <span class="material-symbols-outlined" style="font-size:48px; color:${c.color}; margin-bottom:12px;">${c.icon}</span>
+        <h3 style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; color:var(--on-surface);">${c.title}</h3>
+        <p style="font-size:13px; color:var(--on-surface-variant); margin-bottom:16px;">${c.desc}</p>
+        <a href="list-item.html" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:6px;"><span class="material-symbols-outlined">add_circle</span> List New Item</a>
+      </div>`;
+    return;
+  }
+
+  panel.innerHTML = items.map(item => {
+    const statusClass = { live: 'success', reserved: 'reserved', pending: 'pending', sold: 'completed', returned: 'completed' }[item.status] || '';
+    const statusLabel = item.status.toUpperCase();
+    return `
+      <div class="mgmt-card">
+        <div class="mgmt-card__header">
+          <img class="mgmt-card__img" src="${API.listingPhoto(item)}" alt="${item.title}"/>
+          <div class="mgmt-card__info">
+            <div class="mgmt-card__title">${item.title}</div>
+            <div class="mgmt-card__meta">${API.formatPrice(item)} · ${item.category} · <span class="status-badge status-${statusClass}">${statusLabel}</span></div>
+          </div>
+          <a href="item.html?id=${item._id}" class="btn btn-outline btn-sm">View Item</a>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function startAutoRefresh() {
+  if (dashboardInterval) clearInterval(dashboardInterval);
+  dashboardInterval = setInterval(() => {
+    loadListerDashboard();
+  }, 30000);
+}
+
+populateProfileData();
+loadListerDashboard();
+startAutoRefresh();
 </script>
 </body>
 </html>
