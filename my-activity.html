@@ -274,46 +274,13 @@
     <!-- Wishlist -->
     <div class="tab-panel" id="tab-wishlist">
       <h2 style="font-size:12px; font-weight:700; color:var(--on-surface-variant); margin-bottom:16px; text-transform:uppercase; letter-spacing:0.04em; font-family:'JetBrains Mono',monospace;">Saved Items</h2>
-      <div class="wishlist-grid">
-        <a href="item.html" class="card listing-card">
-          <div class="listing-card__image">
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJzSFJNWilfE_AdVoiqOEZd5_PHIq4Qat13CBIIvS6jXCrqvyx89WWFI5fF3P--QPdOgcMWHCjpLi2d48yNJg0eeme7MgfLIAtmWimVgIAPyX4OxFBPh5SZWRlZTFJnhKazpMfafkLjR_Gmj_TSaJMtHpD9rr85Nr5UDcdJXYmpk3JqdxFuSxIy5hLa2wWof2KRA63et3dDofbNyjwtfAQyDExLcXu8zqJ0vOotf91R3g-t_lNLUqlgA" alt="Shoes"/>
-            <button class="listing-card__wishlist active" onclick="event.preventDefault(); this.closest('.listing-card').remove(); showToast('Removed from wishlist')">
-              <span class="material-symbols-outlined icon-fill" style="font-size:18px; color:var(--error);">favorite</span>
-            </button>
-            <span class="listing-card__type-badge badge badge-buy">Buy</span>
-          </div>
-          <div class="listing-card__body">
-            <h3 class="listing-card__title">Oxford Formal Shoes – Size 9</h3>
-            <div class="listing-card__price">₹650</div>
-          </div>
-        </a>
-        <a href="item.html" class="card listing-card">
-          <div class="listing-card__image">
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYJz_VxNah1kHvpUyUeovD9IlWHozxZyv1ZMl5Io71VcYgh6VlmrYHl7t9JX6Uf8TudbqLsQMGRidtSP6iXOF5FPjUd5kwbXo0ZwMOR56zOl6pUKiHZycXBsQ7QKCIZYUdt2OOkCTEJx-P2oqWXLT91NbB59Gb7EvdD4Rw66Ll9bt0_P65N9acbZqfMZqlatvTgIapH_fRdLHOvPTDQOk9u0vAghutyE5JfB_REp8Iax7lQCK93h4cQw" alt="Tie"/>
-            <button class="listing-card__wishlist active" onclick="event.preventDefault(); this.closest('.listing-card').remove(); showToast('Removed from wishlist')">
-              <span class="material-symbols-outlined icon-fill" style="font-size:18px; color:var(--error);">favorite</span>
-            </button>
-            <span class="listing-card__type-badge badge badge-buy">Buy</span>
-          </div>
-          <div class="listing-card__body">
-            <h3 class="listing-card__title">Placement Tie – Dark Blue</h3>
-            <div class="listing-card__price">₹120</div>
-          </div>
-        </a>
-        <a href="item.html" class="card listing-card">
-          <div class="listing-card__image">
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvIR4_gThove8EP5bNnw26sRi4i98YCVP9UN35mjN7T4AXnCojSOwGinJR4_mBkMYLM_58vwJwYUT6bvfjxTCciINpippXm8qmdu8lZYhYgoIrs0jE8IIg8jpTmmVWSlKyLtULiY1SuFh51nq9zs-l2RIaYGGGW9gRNWUIwFh7EIGgblSJ_UWVp-VKZKDHOzUMmjqM1uHmYUgs-FejTnxT0nKsVp-sKTeBIDXKWm1hbTWt-SGkohK5tQ" alt="Calculus book"/>
-            <button class="listing-card__wishlist active" onclick="event.preventDefault(); this.closest('.listing-card').remove(); showToast('Removed from wishlist')">
-              <span class="material-symbols-outlined icon-fill" style="font-size:18px; color:var(--error);">favorite</span>
-            </button>
-            <span class="listing-card__type-badge badge badge-rent">Rent</span>
-          </div>
-          <div class="listing-card__body">
-            <h3 class="listing-card__title">Calculus 8th Ed – Semester Rental</h3>
-            <div class="listing-card__price">₹120 <span>/ semester</span></div>
-          </div>
-        </a>
+      <div class="wishlist-grid" id="wishlist-grid-container">
+        <!-- Filled dynamically by JS -->
+      </div>
+      <div id="wishlist-empty" style="display:none; text-align:center; padding:48px 16px; color:var(--on-surface-variant);">
+        <span class="material-symbols-outlined" style="font-size:48px; color:var(--outline); display:block; margin-bottom:12px;">favorite_border</span>
+        <p style="font-size:14px; margin:0 0 16px;">No saved items yet</p>
+        <a href="browse.html" class="btn btn-primary" style="font-size:13px;">Browse Listings</a>
       </div>
     </div>
   </div>
@@ -442,8 +409,9 @@ async function loadActivityData() {
 
   // Load wishlist
   const wlRes = await API.users.getWishlist();
+  const wlGrid = document.getElementById('wishlist-grid-container');
+  const wlEmpty = document.getElementById('wishlist-empty');
   if (wlRes.ok && wlRes.wishlist) {
-    const wlGrid = document.querySelector('.wishlist-grid');
     if (wlGrid && wlRes.wishlist.length > 0) {
       wlGrid.innerHTML = wlRes.wishlist.map(item => `
         <a href="item.html?id=${item._id}" class="card listing-card">
@@ -460,7 +428,11 @@ async function loadActivityData() {
           </div>
         </a>
       `).join('');
+    } else {
+      if (wlEmpty) wlEmpty.style.display = 'block';
     }
+  } else {
+    if (wlEmpty) wlEmpty.style.display = 'block';
   }
 }
 
