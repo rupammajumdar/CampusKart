@@ -61,11 +61,20 @@ async function sendEmail({ to, subject, html }) {
   // 1. Try SMTP (Gmail or custom SMTP server) if configured
   if (smtpTransporter) {
     try {
+      // Extract plain text from HTML for better deliverability
+      const textBody = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
       const info = await smtpTransporter.sendMail({
         from: FROM,
         to,
         subject,
         html,
+        text: textBody,
+        headers: {
+          'X-Mailer': 'CampusKart Mailer',
+          'X-Priority': '3',
+          'Precedence': 'bulk',
+          'List-Unsubscribe': '<mailto:unsubscribe@campuskart.in>',
+        },
       });
       console.log(`✅ Email delivered to ${to} via SMTP: ${info.messageId}`);
       return { ok: true, provider: 'smtp', id: info.messageId };
