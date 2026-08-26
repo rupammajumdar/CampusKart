@@ -152,11 +152,11 @@ router.post(
         quantity: quantity ? Number(quantity) : 1,
         photos,
         tags: tags ? tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
-        status: status === 'draft' ? 'draft' : 'live',
+        status: status === 'draft' ? 'draft' : 'pending',
       });
 
       res.status(201).json({
-        message: status === 'draft' ? 'Draft saved.' : 'Listing published successfully!',
+        message: status === 'draft' ? 'Draft saved.' : 'Listing submitted! Pending Admin approval.',
         listing,
       });
     } catch (err) {

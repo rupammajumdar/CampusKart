@@ -31,13 +31,7 @@ const APP_URL = getAppUrl();
 // ─── Shared email wrapper ────────────────────────────────────────────────────
 async function sendEmail({ to, subject, html }) {
   try {
-    // For Resend free tier testing with onboarding@resend.dev, redirect recipient to verified account owner
-    let recipient = to;
-    if (FROM.includes('resend.dev')) {
-      recipient = 'utpalmajumdar6@gmail.com';
-    }
-
-    const { data, error } = await resend.emails.send({ from: FROM, to: recipient, subject, html });
+    const { data, error } = await resend.emails.send({ from: FROM, to, subject, html });
     if (error) {
       console.error('Resend error:', error);
       return { ok: false, error };
@@ -86,6 +80,10 @@ function baseTemplate(content) {
 // 1. Email verification
 async function sendVerificationEmail(user, token) {
   const link = `${APP_URL}/api/auth/verify-email?token=${token}`;
+  console.log(`\n======================================================`);
+  console.log(`📧 VERIFICATION EMAIL FOR: ${user.email}`);
+  console.log(`🔗 VERIFICATION LINK: ${link}`);
+  console.log(`======================================================\n`);
   return sendEmail({
     to: user.email,
     subject: '✅ Verify your CampusKart email',

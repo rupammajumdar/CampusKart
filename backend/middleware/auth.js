@@ -39,9 +39,9 @@ function authMiddleware(options = {}) {
  * Middleware: requires user to be email-verified.
  */
 function requireVerified(req, res, next) {
-  if (req.user && !req.user.isVerified) {
-    req.user.isVerified = true;
-    User.updateOne({ _id: req.user._id }, { isVerified: true }).exec();
+  if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+  if (!req.user.isVerified) {
+    return res.status(403).json({ error: 'Email verification required. Please check your inbox or click resend verification link.' });
   }
   next();
 }

@@ -48,8 +48,8 @@ router.post('/register', async (req, res) => {
       branch,
       year,
       hostel: hostel || '',
-      isVerified: true, // Auto-verified for seamless access
-      isLister: true,   // Auto-enabled lister access
+      isVerified: false,
+      isLister: true,
       verificationToken: token,
       verificationTokenExpires: expires,
     });
