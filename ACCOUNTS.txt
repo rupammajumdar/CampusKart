@@ -1,0 +1,39 @@
+====================================================================
+                 CAMPUSKART — DEMO & TEST ACCOUNTS
+====================================================================
+
+Application Server URL: http://localhost:5000/index.html
+Health Check URL:        http://localhost:5000/api/health
+
+--------------------------------------------------------------------
+1. ADMIN ACCOUNT
+--------------------------------------------------------------------
+Role:     Admin (Approve/reject listings, view analytics & user management)
+Email:    admin@campuskart.com
+Password: admin123456
+Name:     Admin Coordinator
+Panel:    http://localhost:5000/admin.html
+
+--------------------------------------------------------------------
+2. STUDENT ACCOUNT #1
+--------------------------------------------------------------------
+Role:     Student / Seller / Buyer
+Email:    student@gmail.com
+Password: student123456
+Name:     Aman Kumar (CSE, 3rd Year)
+
+--------------------------------------------------------------------
+3. STUDENT ACCOUNT #2
+--------------------------------------------------------------------
+Role:     Student / Seller / Buyer
+Email:    student2@gmail.com
+Password: student123456
+Name:     Priya Sharma (ECE, 2nd Year)
+
+====================================================================
+NOTES:
+- All accounts are verified and pre-approved with lister privileges.
+- You can log in using either account in different browser windows/incognito
+  to test live chat messages, interest requests, and ratings.
+- Standard email format is accepted for new registrations (e.g. @gmail.com).
+====================================================================

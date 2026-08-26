@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — CampusKart</title>
+  <meta name="description" content="Moderation queue for CampusKart platform admins. Review and approve or reject student listings."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Sora:wght@700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="assets/style.css"/>
+  <script src="assets/api.js"></script>
+  <style>
+    body { background: var(--surface-bright); }
+    .admin-wrap { max-width: 1080px; margin: 0 auto; padding: 32px var(--margin-mobile) 80px; }
+    @media(min-width:768px) { .admin-wrap { padding: 40px var(--margin-desktop) 60px; } }
+
+    /* Admin banner */
+    .admin-banner {
+      background: linear-gradient(135deg, rgba(66,64,229,0.06) 0%, rgba(0,106,98,0.06) 100%);
+      border: 1px solid rgba(66,64,229,0.15);
+      border-radius: var(--radius-xl);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .admin-badge { background: var(--primary); color: var(--on-primary); font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; padding:4px 10px; border-radius:var(--radius-full); flex-shrink:0; }
+
+    /* Stats */
+    .admin-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:32px; }
+    @media(min-width:600px) { .admin-stats { grid-template-columns:repeat(4,1fr); } }
+    .admin-stat { background:var(--surface-container-lowest); border:1px solid var(--outline-variant); border-radius:var(--radius-xl); padding:18px; text-align:center; box-shadow:var(--shadow-glow-sm); }
+    .admin-stat__num { font-family:'Sora',sans-serif; font-size:32px; font-weight:800; line-height:1; }
+    .admin-stat__label { font-size:12px; color:var(--on-surface-variant); margin-top:4px; }
+
+    /* Tabs */
+    .tabs { display:flex; gap:0; border-bottom:2px solid var(--outline-variant); margin-bottom:24px; overflow-x:auto; -ms-overflow-style:none; scrollbar-width:none; }
+    .tabs::-webkit-scrollbar { display:none; }
+    .tab-btn { padding:12px 20px; font-size:14px; font-weight:600; color:var(--on-surface-variant); border-bottom:2px solid transparent; margin-bottom:-2px; cursor:pointer; transition:all var(--transition-fast); white-space:nowrap; }
+    .tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; animation:fadeIn 0.2s; }
+
+    /* Review card */
+    .review-card {
+      background: var(--surface-container-lowest);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-glow-sm);
+      transition: box-shadow var(--transition-base);
+    }
+    .review-card:hover { box-shadow: var(--shadow-glow-md); }
+    .review-card__header { display:flex; gap:14px; padding:14px 16px; align-items:flex-start; }
+    .review-card__img { width:80px; height:80px; border-radius:var(--radius-md); object-fit:cover; flex-shrink:0; border:1px solid var(--outline-variant); }
+    .review-card__info { flex:1; min-width:0; }
+    .review-card__title { font-size:16px; font-weight:700; margin-bottom:4px; }
+    .review-card__meta { font-size:12px; color:var(--on-surface-variant); margin-bottom:8px; display:flex; flex-wrap:wrap; gap:12px; }
+    .review-card__desc { font-size:13px; color:var(--on-surface-variant); line-height:1.6; margin-bottom:10px; }
+    .review-card__actions { border-top:1px solid var(--outline-variant); padding:12px 16px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; background: var(--surface-bright); }
+    .reject-reason { flex:1; min-width:180px; }
+
+    /* User table */
+    .user-table-wrap { background:var(--surface-container-lowest); border:1px solid var(--outline-variant); border-radius:var(--radius-xl); overflow:hidden; box-shadow:var(--shadow-glow-sm); }
+    .user-table { width:100%; border-collapse:collapse; }
+    .user-table th { background:var(--surface-container-high); padding:10px 16px; text-align:left; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:var(--on-surface-variant); border-bottom:1px solid var(--outline-variant); }
+    .user-table td { padding:12px 16px; border-bottom:1px solid var(--surface-container-highest); font-size:13px; vertical-align:middle; }
+    .user-table tr:last-child td { border-bottom:none; }
+    .user-table tr:hover td { background:var(--surface-container-low); }
+
+    /* Announcement tool */
+    .announce-card { background:var(--surface-container-lowest); border:1px solid var(--outline-variant); border-radius:var(--radius-xl); padding:24px; box-shadow:var(--shadow-glow-sm); margin-bottom:16px; }
+    .announce-card__title { font-family:'Inter',sans-serif; font-size:15px; font-weight:700; margin-bottom:16px; }
+  </style>
+</head>
+<body class="page-wrapper">
+<!-- Top Developer & Campus Bar (AT THE TOP) -->
+<div class="dev-topbar">
+  <div class="dev-topbar__inner">
+    <div class="dev-topbar__nitrr">
+      <img src="IMAGES/gate_nitrr_2026.jpg" alt="NIT Raipur Gate" class="dev-topbar__nitrr-img"/>
+      <span>NIT Raipur Official Student Marketplace</span>
+    </div>
+    <a href="https://www.linkedin.com/in/rupam2007/" target="_blank" rel="noopener noreferrer" class="dev-topbar__dev" title="Developer LinkedIn Profile">
+      <img src="IMAGES/rupam_photo.png" alt="Rupam Developer" class="dev-topbar__dev-img"/>
+      <span class="dev-topbar__dev-text">Developed by <strong>Rupam</strong> ↗</span>
+    </a>
+  </div>
+</div>
+
+<!-- Top Nav -->
+<header class="topnav">
+  <div class="container topnav__inner">
+    <a href="home.html" class="topnav__brand">
+      <img src="IMAGES/gate_nitrr_2026.jpg" alt="NIT RR" class="topnav__brand-img"/>
+      <span>CampusKart</span>
+    </a>
+    <nav class="topnav__links">
+      <a href="home.html" class="topnav__link">Home</a>
+      <a href="browse.html" class="topnav__link">Browse</a>
+      <a href="admin.html" class="topnav__link active">Admin Panel</a>
+    </nav>
+    <div class="topnav__actions">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAipeKRy_FU0CznwSCsCN0sIUefdWMW-GVIjIhgN1rE2AbUW6uYxoZTZPBFlHWv2tKaN6rhftNlDnEfzGW-PqjchVRINYoByYT88q8GInzVwCjhc5XcVb91mTxNTclQy8i7wpRJRHTbPf5lrlvaTtrJii0y2rtONNnBTdUnotp5gDuPFHwoDJoc74esfqM3NAdAGKn_OlGtlVHtUJKy1BmE6VCNc9Z0JYhR1OlYFBCO2h6ZsU0yKLwQnA" alt="Profile" class="topnav__avatar"/>
+    </div>
+  </div>
+</header>
+
+<main class="flex-1">
+  <div class="admin-wrap">
+    <!-- Admin banner -->
+    <div class="admin-banner">
+      <span class="admin-badge">Admin</span>
+      <div>
+        <p style="font-weight:700; font-size:16px;">Platform Moderation Panel</p>
+        <p style="font-size:13px; color:var(--on-surface-variant);">CampusKart · NIT Raipur · You are logged in as an admin</p>
+      </div>
+      <a href="home.html" class="btn btn-surface btn-sm" style="margin-left:auto;">← Back to Platform</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="admin-stats">
+      <div class="admin-stat">
+        <div class="admin-stat__num" style="color:var(--tertiary);">4</div>
+        <div class="admin-stat__label">Pending Review</div>
+      </div>
+      <div class="admin-stat">
+        <div class="admin-stat__num" style="color:var(--primary);">382</div>
+        <div class="admin-stat__label">Total Listings</div>
+      </div>
+      <div class="admin-stat">
+        <div class="admin-stat__num" style="color:var(--secondary);">1,248</div>
+        <div class="admin-stat__label">Verified Users</div>
+      </div>
+      <div class="admin-stat">
+        <div class="admin-stat__num" style="color:var(--error);">2</div>
+        <div class="admin-stat__label">Reports Open</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchAdminTab('queue')">Moderation Queue <span style="background:var(--tertiary);color:var(--on-tertiary);border-radius:20px;padding:1px 7px;font-size:11px;margin-left:4px;">4</span></button>
+      <button class="tab-btn" onclick="switchAdminTab('reports')">Reports <span style="background:var(--error);color:var(--on-error);border-radius:20px;padding:1px 7px;font-size:11px;margin-left:4px;">2</span></button>
+      <button class="tab-btn" onclick="switchAdminTab('users')">Users</button>
+      <button class="tab-btn" onclick="switchAdminTab('announcements')">Announcements</button>
+    </div>
+
+    <!-- Moderation Queue -->
+    <div class="tab-panel active" id="tab-queue">
+      <div style="text-align:center; padding:48px 24px; color:var(--on-surface-variant);">
+        <span class="material-symbols-outlined" style="font-size:48px; color:var(--outline);">sync</span>
+        <p style="font-size:14px; margin-top:8px;">Loading pending listings from database…</p>
+      </div>
+    </div>
+
+    <!-- Reports -->
+    <div class="tab-panel" id="tab-reports">
+      <div class="review-card">
+        <div class="review-card__header">
+          <img class="review-card__img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWGyXM56nVVWhBsdpX_tcih5Wq0OPD0aPot_JtVwdgrRKH-_LVo3PIobe0dnf6Pz2kcmnkU2I9v1uM7glJDjz0Zbw28CE610r_gVUxBLfuknwopGiqREzPk1xU6u8IIQkpcdHkval8ghyyFkcFp75h4ryXg1ZYM23ct140gk74kF_hdCYvSytXPYIo1FJGVMzOhB_pxrXBZTxNThDP9ZBAxMmt06q6HT2jqcMdkYuJCfCB_Mb7H6irKw" alt="Lab Coat"/>
+          <div class="review-card__info">
+            <div class="review-card__title">Lab Coat – Size M</div>
+            <div class="review-card__meta">
+              <span>Report by: ankit@nitrr.ac.in</span>
+              <span class="status-badge status-pending">Open</span>
+            </div>
+            <p class="review-card__desc">"<strong>Reason:</strong> Item is misrepresented / fake photos — the image shown does not match the item I received. The coat had visible stains."</p>
+          </div>
+        </div>
+        <div class="review-card__actions">
+          <button class="btn btn-sm btn-primary" onclick="showToast('Listing removed and lister notified')">Remove Listing</button>
+          <button class="btn btn-sm btn-surface" onclick="showToast('Warning issued to lister')">Warn Lister</button>
+          <button class="btn btn-sm btn-surface" onclick="showToast('Report dismissed')">Dismiss</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div class="tab-panel" id="tab-users">
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <div style="flex:1; position:relative;">
+          <span class="material-symbols-outlined" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--outline); font-size:20px;">search</span>
+          <input class="input-field" type="text" placeholder="Search by name or email…" style="padding-left:40px;"/>
+        </div>
+        <div class="select-wrapper">
+          <select class="input-field" style="padding:12px 36px 12px 14px;">
+            <option>All Users</option>
+            <option>Verified</option>
+            <option>Suspended</option>
+          </select>
+          <span class="material-symbols-outlined select-wrapper__arrow">expand_more</span>
+        </div>
+      </div>
+      <div class="user-table-wrap">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Branch/Year</th>
+              <th>Listings</th>
+              <th>Rating</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUSnRypnEvmAik4rj2pzRIjdxrDBUTz0qKZmEI3Eg0Q2GoDSZtt_CByoclIkOHNa5ow5Cu88Vu-TBZ5CAXQK-WRdo_aGKWQ6Y78fIBHcm1P8_K6UQl1Ds7S1uzR4TTHVRdRGBdTyzHLLHhSK8rracs_FlWaZcaB8brB2TNFo6OrntRovYdXnF1BcIyB0zRTfJslG74CIAWYZtDRd8rg1gS2aedmdCWkoIM0YMQxpqEc0ziDxZEKZ6-SQ" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" alt="Rohit"/>
+                  <div><div style="font-weight:600;">Rohit Sharma</div><div style="font-size:11px;color:var(--on-surface-variant);">rohit@nitrr.ac.in</div></div>
+                </div>
+              </td>
+              <td>ME · 4th Year</td>
+              <td>8 active</td>
+              <td><span style="color:var(--tertiary-container); font-weight:700;">★ 4.8</span></td>
+              <td><span class="status-badge status-live" style="font-size:11px;">Active</span></td>
+              <td><button class="btn btn-sm btn-surface" onclick="showToast('Warning sent to Rohit')">Warn</button></td>
+            </tr>
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuByadx3Fzt2LD0-TP3qFi5V2w3E7fyYaFs_8G6EitXcLOgqvLUUBdxSK33t7ycNRqTMykN71LBbU62-XXcFzfGIj_6vRfH6-bVjy-Wg-MFp5wL2iudUcDXvrQRQICRW-SN9DUH2uJEmUYcgSY5gZFv8YsObCjTZVJqNkzkW1hYxKd1bs6dGJ0WO5YtrkRVdXFYYLY4pbrZvkbHqurBiT5kOEYTpl9CIEtxpgKmu8B6Oy0wTTE5hxsImYg" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" alt="Priya"/>
+                  <div><div style="font-weight:600;">Priya Mehta</div><div style="font-size:11px;color:var(--on-surface-variant);">priya@nitrr.ac.in</div></div>
+                </div>
+              </td>
+              <td>CSE · 3rd Year</td>
+              <td>5 active</td>
+              <td><span style="color:var(--tertiary-container); font-weight:700;">★ 4.7</span></td>
+              <td><span class="status-badge status-live" style="font-size:11px;">Active</span></td>
+              <td><button class="btn btn-sm btn-surface" onclick="showToast('Account suspended')">Suspend</button></td>
+            </tr>
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <div style="width:32px;height:32px;border-radius:50%;background:var(--surface-container-high);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:var(--on-surface-variant);">AS</div>
+                  <div><div style="font-weight:600;">Ankit Singh</div><div style="font-size:11px;color:var(--on-surface-variant);">ankit@nitrr.ac.in</div></div>
+                </div>
+              </td>
+              <td>ME · 2nd Year</td>
+              <td>2 active</td>
+              <td><span style="color:var(--tertiary-container); font-weight:700;">★ 4.2</span></td>
+              <td><span class="status-badge status-pending" style="font-size:11px;">Warning</span></td>
+              <td><button class="btn btn-sm btn-surface" style="color:var(--error);" onclick="showToast('Account suspended')">Suspend</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Announcements -->
+    <div class="tab-panel" id="tab-announcements">
+      <div class="announce-card">
+        <p class="announce-card__title">📢 Platform Announcement</p>
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div class="form-group">
+            <label class="form-label">Banner Text</label>
+            <input class="input-field" type="text" id="announce-text" placeholder="e.g. Placement season listings — submit early for faster approval!" value="🎉 New batch welcome! List your lab kits &amp; earn extra this semester."/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Display Duration</label>
+            <div class="select-wrapper">
+              <select class="input-field" id="announce-duration">
+                <option>Show until dismissed</option>
+                <option>1 Day</option>
+                <option>3 Days</option>
+                <option>1 Week</option>
+              </select>
+              <span class="material-symbols-outlined select-wrapper__arrow">expand_more</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Target audience</label>
+            <div style="display:flex; flex-wrap:wrap; gap:12px;">
+              <label class="checkbox-label"><input type="checkbox" checked/> All users</label>
+              <label class="checkbox-label"><input type="checkbox"/> Listers only</label>
+              <label class="checkbox-label"><input type="checkbox"/> New users only</label>
+            </div>
+          </div>
+          <div>
+            <p class="form-label" style="margin-bottom:8px;">Preview</p>
+            <div style="background:linear-gradient(135deg,var(--primary) 0%,var(--primary-container) 100%); color:var(--on-primary); padding:10px 16px; border-radius:var(--radius-md); font-size:13px; display:flex; align-items:center; gap:8px;">
+              <span class="material-symbols-outlined" style="font-size:18px;">campaign</span>
+              <span id="announce-preview">🎉 New batch welcome! List your lab kits &amp; earn extra this semester.</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-primary" onclick="publishAnnouncement()">
+              <span class="material-symbols-outlined">send</span> Publish Announcement
+            </button>
+            <button class="btn btn-surface" onclick="showToast('Announcement cleared')">Clear Current</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Past announcements -->
+      <div class="announce-card" style="border:1px dashed var(--outline-variant); background:var(--surface-container-low);">
+        <p class="announce-card__title" style="color:var(--on-surface-variant);">Past Announcements</p>
+        <div style="font-size:13px; color:var(--on-surface-variant);">No past announcements recorded.</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container footer__grid">
+    <div><a href="home.html" class="footer__brand">CampusKart</a><p class="footer__copy">© 2026 CampusKart. NIT Raipur.</p></div>
+    <div class="footer__links"><a href="#" class="footer__link">Safety Policy</a><a href="#" class="footer__link">Admin Guide</a></div>
+  </div>
+</footer>
+
+<div id="toast-container"></div>
+
+<script>
+if (!API.requireAuth('index.html')) {
+  // Redirecting
+}
+const adminUser = API.getUser();
+if (adminUser && adminUser.role !== 'admin') {
+  API.toast('Admin access required', 'error');
+  setTimeout(() => window.location.href = 'home.html', 1000);
+}
+
+function switchAdminTab(id) {
+  const ids = ['queue','reports','users','announcements'];
+  document.querySelectorAll('.tabs .tab-btn').forEach((b,i) => b.classList.toggle('active', ids[i]===id));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById(`tab-${id}`);
+  if (panel) panel.classList.add('active');
+}
+
+async function approveCard(listingId, cardId, label) {
+  const res = await API.admin.approve(listingId);
+  if (res.ok) {
+    const card = document.getElementById(cardId);
+    if (card) card.remove();
+    API.toast(`✅ Approved: "${label}". Email sent to seller!`);
+  } else {
+    API.toast(res.error || 'Failed to approve listing', 'error');
+  }
+}
+
+async function rejectCard(listingId, cardId, reasonId) {
+  const reasonEl = document.getElementById(reasonId);
+  const reason = reasonEl ? reasonEl.value : '';
+  if (!reason) { API.toast('Please select a rejection reason', 'error'); return; }
+
+  const res = await API.admin.reject(listingId, reason);
+  if (res.ok) {
+    const card = document.getElementById(cardId);
+    if (card) card.remove();
+    API.toast(`Rejected. Seller notified via email: "${reason}".`, 'error');
+  } else {
+    API.toast(res.error || 'Failed to reject listing', 'error');
+  }
+}
+
+async function deleteListing(listingId, cardId) {
+  if (!confirm('Are you sure you want to delete this listing completely?')) return;
+  const res = await API.admin.deleteListing(listingId);
+  if (res.ok) {
+    const card = document.getElementById(cardId);
+    if (card) card.remove();
+    API.toast('Listing deleted permanently', 'success');
+  } else {
+    API.toast(res.error || 'Failed to delete listing', 'error');
+  }
+}
+
+async function toggleSuspendUser(userId, isCurrentlyBanned) {
+  const reason = isCurrentlyBanned ? '' : (prompt('Enter reason for suspension:') || 'Violation of campus rules');
+  const res = await API.admin.suspend(userId, !isCurrentlyBanned, reason);
+  if (res.ok) {
+    API.toast(isCurrentlyBanned ? 'User un-suspended' : 'User suspended', 'info');
+    loadUsersData();
+  } else {
+    API.toast(res.error || 'Failed to update user', 'error');
+  }
+}
+
+async function editListingPrompt(listingId, currentTitle, currentPrice, currentStatus) {
+  const newTitle = prompt('Edit Listing Title:', currentTitle);
+  if (newTitle === null) return;
+  const newPriceStr = prompt('Edit Price (₹):', currentPrice || 0);
+  if (newPriceStr === null) return;
+  const newStatus = prompt('Edit Status (pending / live / draft / sold):', currentStatus);
+  if (newStatus === null) return;
+
+  const res = await API.admin.updateListing(listingId, {
+    title: newTitle,
+    price: parseFloat(newPriceStr) || 0,
+    status: newStatus.trim().toLowerCase()
+  });
+
+  if (res.ok) {
+    API.toast('Listing updated successfully', 'success');
+    loadAdminData();
+  } else {
+    API.toast(res.error || 'Failed to update listing', 'error');
+  }
+}
+
+async function toggleUserListings(userId) {
+  const container = document.getElementById(`user-listings-${userId}`);
+  if (!container) return;
+  if (container.style.display === 'block') {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+  container.innerHTML = '<div style="font-size:13px; color:var(--on-surface-variant); padding:8px 0;">Loading user listings…</div>';
+
+  const res = await API.admin.getUserListings(userId);
+  if (res.ok && res.listings) {
+    if (res.listings.length === 0) {
+      container.innerHTML = '<div style="font-size:13px; color:var(--on-surface-variant); padding:8px 0;">No listings found for this user.</div>';
+      return;
+    }
+
+    container.innerHTML = res.listings.map(item => `
+      <div style="background:var(--surface-bright); border:1px solid var(--outline-variant); border-radius:var(--radius-md); padding:12px; margin-top:8px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <div style="display:flex; gap:12px; align-items:center;">
+          <img src="${API.listingPhoto(item)}" alt="${item.title}" style="width:48px; height:48px; object-fit:cover; border-radius:var(--radius-sm);"/>
+          <div>
+            <div style="font-weight:600; font-size:14px;">${item.title} <span class="badge badge-pill" style="font-size:10px;">${item.status}</span></div>
+            <div style="font-size:12px; color:var(--on-surface-variant);">${API.formatPrice(item)} · ${item.category}</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-sm btn-outline" onclick="editListingPrompt('${item._id}', '${item.title.replace(/'/g, "\\'")}', ${item.price || 0}, '${item.status}')">Edit</button>
+          <button class="btn btn-sm" style="background:var(--error-container); color:var(--error);" onclick="deleteListing('${item._id}', '')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+async function loadUsersData() {
+  const usersTab = document.getElementById('tab-users');
+  if (!usersTab) return;
+  const res = await API.admin.users();
+  if (res.ok && res.users) {
+    usersTab.innerHTML = `
+      <div style="margin-bottom:16px; font-weight:600; font-size:16px;">Registered Users (${res.total})</div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        ${res.users.map(u => `
+          <div class="card" style="padding:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div style="display:flex; align-items:center; gap:14px;">
+                <img src="${API.userAvatar(u)}" alt="${u.firstName}" style="width:48px; height:48px; border-radius:var(--radius-full); object-fit:cover; border:1px solid var(--outline-variant);"/>
+                <div>
+                  <div style="font-weight:700; font-size:16px;">${u.firstName} ${u.lastName} ${u.role === 'admin' ? '<span class="badge badge-pill" style="background:var(--primary-container); color:var(--primary); font-size:10px;">Admin</span>' : ''}</div>
+                  <div style="font-size:13px; color:var(--on-surface-variant);">${u.email} · ${u.branch || '—'} (${u.year || '—'})</div>
+                  <div style="font-size:12px; color:var(--outline); margin-top:4px;">
+                    Uploads: <strong>${u.listingsCount || 0}</strong> listings · Reports: <strong>${u.reportsCount || 0}</strong> · Rating: ⭐ ${u.rating ? u.rating.toFixed(1) : '5.0'} (${u.ratingCount || 0})
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-sm btn-surface" onclick="toggleUserListings('${u._id}')">View Listings (${u.listingsCount || 0})</button>
+                ${u.role !== 'admin' ? `
+                  <button class="btn btn-sm ${u.isBanned ? 'btn-primary' : 'btn-outline'}" style="${u.isBanned ? '' : 'color:var(--error); border-color:var(--error);'}" onclick="toggleSuspendUser('${u._id}', ${!!u.isBanned})">
+                    ${u.isBanned ? 'Un-suspend' : 'Suspend User'}
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+            <div id="user-listings-${u._id}" style="display:none; margin-top:12px; border-top:1px solid var(--outline-variant); padding-top:8px;"></div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+}
+
+async function loadAdminData() {
+  const res = await API.admin.queue();
+  if (res.ok && res.listings) {
+    const queueTab = document.getElementById('tab-queue');
+    if (queueTab && res.listings.length > 0) {
+      queueTab.innerHTML = res.listings.map((item, idx) => `
+        <div class="card mod-card" id="card-${item._id}" style="margin-bottom:16px; padding:20px;">
+          <div style="display:flex; gap:16px;">
+            <img src="${API.listingPhoto(item)}" alt="${item.title}" style="width:120px; height:120px; object-fit:cover; border-radius:var(--radius-md);"/>
+            <div style="flex:1;">
+              <div style="font-weight:700; font-size:18px;">${item.title}</div>
+              <div style="font-size:13px; color:var(--on-surface-variant); margin:4px 0;">${API.formatPrice(item)} · ${item.category} · ${item.condition}</div>
+              <div style="font-size:13px; color:var(--on-surface-variant);">Seller: <strong>${item.seller?.firstName} ${item.seller?.lastName}</strong> (${item.seller?.email})</div>
+              <p style="font-size:14px; margin:12px 0;">${item.description}</p>
+
+              <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                <select id="reason-${item._id}" class="input-field" style="max-width:220px; font-size:13px;">
+                  <option value="" disabled selected>Select rejection reason</option>
+                  <option value="Misrepresented item details or price">Misrepresented item</option>
+                  <option value="Poor quality / blurry photos">Poor quality photos</option>
+                  <option value="Prohibited item on campus">Prohibited item</option>
+                  <option value="Inappropriate language or description">Inappropriate description</option>
+                </select>
+                <button class="btn btn-outline btn-sm" onclick="rejectCard('${item._id}', 'card-${item._id}', 'reason-${item._id}')">Reject</button>
+                <button class="btn btn-primary btn-sm" onclick="approveCard('${item._id}', 'card-${item._id}', '${item.title}')">Approve & Publish</button>
+                <button class="btn btn-sm" style="background:var(--error-container); color:var(--error);" onclick="deleteListing('${item._id}', 'card-${item._id}')">Delete Listing</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    } else if (queueTab) {
+      queueTab.innerHTML = `<div style="text-align:center; padding:48px 0; color:var(--on-surface-variant);">
+        <span class="material-symbols-outlined" style="font-size:48px; color:var(--outline);">check_circle</span>
+        <h3>Moderation queue is empty!</h3>
+        <p>All listings have been reviewed.</p>
+      </div>`;
+    }
+  }
+
+  loadUsersData();
+}
+
+loadAdminData();
+</script>
+</body>
+</html>

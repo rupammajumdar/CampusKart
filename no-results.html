@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>No Results — CampusKart</title>
+  <meta name="description" content="No listings found for your search on CampusKart. Try different filters or be the first to list this item!"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Sora:wght@700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="assets/style.css"/>
+  <script src="assets/api.js"></script>
+  <style>
+    body { background: var(--surface-bright); }
+    .empty-state-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 64px - 60px);
+      padding: 40px 24px;
+      text-align: center;
+    }
+    .mascot-wrap {
+      position: relative;
+      margin-bottom: 32px;
+    }
+    .mascot-blob {
+      width: 220px;
+      height: 220px;
+      border-radius: 60% 40% 55% 45% / 50% 55% 45% 50%;
+      background: linear-gradient(135deg, var(--primary-fixed) 0%, var(--secondary-container) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 80px;
+      animation: morphBlob 6s ease-in-out infinite;
+      box-shadow: var(--shadow-glow-md);
+    }
+    @keyframes morphBlob {
+      0%   { border-radius: 60% 40% 55% 45% / 50% 55% 45% 50%; }
+      33%  { border-radius: 45% 55% 40% 60% / 55% 45% 50% 50%; }
+      66%  { border-radius: 55% 45% 60% 40% / 45% 50% 55% 45%; }
+      100% { border-radius: 60% 40% 55% 45% / 50% 55% 45% 50%; }
+    }
+    .floating-orb {
+      position: absolute;
+      border-radius: var(--radius-full);
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-12px); }
+    }
+    .empty-title { font-family:'Sora',sans-serif; font-size:clamp(28px,5vw,40px); font-weight:800; color:var(--on-surface); margin-bottom:12px; letter-spacing:-0.02em; }
+    .empty-sub { font-size:clamp(14px,2vw,17px); color:var(--on-surface-variant); max-width:440px; margin:0 auto 32px; line-height:1.6; }
+    .suggestions { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:40px; }
+    .suggestion-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px;
+      background: var(--surface-container-lowest);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--on-surface);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      box-shadow: var(--shadow-glow-sm);
+    }
+    .suggestion-chip:hover {
+      background: var(--primary-fixed);
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-glow-md);
+    }
+    .cta-row { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .search-box-wrap { max-width:400px; margin:0 auto 32px; position:relative; }
+    .search-box-wrap input { width:100%; padding: 13px 16px 13px 46px; background:var(--surface-container-lowest); border:1.5px solid var(--outline-variant); border-radius:var(--radius-full); font-size:15px; outline:none; transition:all var(--transition-base); box-shadow:var(--shadow-glow-sm); }
+    .search-box-wrap input:focus { border-color:var(--primary); box-shadow:var(--shadow-glow-md); }
+    .search-box-wrap .search-icon-inner { position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--outline); font-size:22px; pointer-events:none; }
+  </style>
+</head>
+<body class="page-wrapper">
+<!-- Top Developer & Campus Bar (AT THE TOP) -->
+<div class="dev-topbar">
+  <div class="dev-topbar__inner">
+    <div class="dev-topbar__nitrr">
+      <img src="IMAGES/gate_nitrr_2026.jpg" alt="NIT Raipur Gate" class="dev-topbar__nitrr-img"/>
+      <span>NIT Raipur Official Student Marketplace</span>
+    </div>
+    <a href="https://www.linkedin.com/in/rupam2007/" target="_blank" rel="noopener noreferrer" class="dev-topbar__dev" title="Developer LinkedIn Profile">
+      <img src="IMAGES/rupam_photo.png" alt="Rupam Developer" class="dev-topbar__dev-img"/>
+      <span class="dev-topbar__dev-text">Developed by <strong>Rupam</strong> ↗</span>
+    </a>
+  </div>
+</div>
+
+<!-- Top Nav -->
+<header class="topnav">
+  <div class="container topnav__inner">
+    <a href="home.html" class="topnav__brand">
+      <img src="IMAGES/gate_nitrr_2026.jpg" alt="NIT RR" class="topnav__brand-img"/>
+      <span>CampusKart</span>
+    </a>
+    <div class="topnav__search">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input type="text" id="search-input" placeholder="Try a different search…" onkeydown="if(event.key==='Enter') goSearch()"/>
+    </div>
+    <nav class="topnav__links">
+      <a href="home.html" class="topnav__link">Home</a>
+      <a href="browse.html" class="topnav__link active">Browse</a>
+      <a href="messages.html" class="topnav__link">Messages</a>
+      <a href="my-activity.html" class="topnav__link">My Activity</a>
+    </nav>
+    <div class="topnav__actions">
+      <a href="list-item.html" class="btn btn-primary btn-sm btn-pill">+ List Item</a>
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAipeKRy_FU0CznwSCsCN0sIUefdWMW-GVIjIhgN1rE2AbUW6uYxoZTZPBFlHWv2tKaN6rhftNlDnEfzGW-PqjchVRINYoByYT88q8GInzVwCjhc5XcVb91mTxNTclQy8i7wpRJRHTbPf5lrlvaTtrJii0y2rtONNnBTdUnotp5gDuPFHwoDJoc74esfqM3NAdAGKn_OlGtlVHtUJKy1BmE6VCNc9Z0JYhR1OlYFBCO2h6ZsU0yKLwQnA" alt="Profile" class="topnav__avatar"/>
+    </div>
+  </div>
+</header>
+
+<main class="flex-1">
+  <div class="empty-state-page">
+    <!-- Anime mascot illustration -->
+    <div class="mascot-wrap">
+      <!-- Floating orbs -->
+      <div class="floating-orb" style="width:16px;height:16px;background:var(--primary-fixed-dim);top:-16px;right:20px;animation-delay:0.5s;"></div>
+      <div class="floating-orb" style="width:10px;height:10px;background:var(--secondary-fixed);top:30px;left:-16px;animation-delay:1s;"></div>
+      <div class="floating-orb" style="width:8px;height:8px;background:var(--tertiary-fixed);bottom:10px;right:-20px;animation-delay:1.5s;"></div>
+      <!-- Blob mascot -->
+      <div class="mascot-blob">🔍</div>
+    </div>
+
+    <h1 class="empty-title">Nothing here yet!</h1>
+    <p class="empty-sub" id="empty-sub">
+      We couldn't find any listings matching your search on campus.<br/>
+      Try different keywords, clear your filters — or be the first to list it!
+    </p>
+
+    <!-- Search -->
+    <div class="search-box-wrap">
+      <span class="material-symbols-outlined search-icon-inner">search</span>
+      <input type="text" placeholder="Try 'lab coat', 'calculus book'…" id="retry-search" onkeydown="if(event.key==='Enter') goRetrySearch()"/>
+    </div>
+
+    <!-- Category suggestions -->
+    <div class="suggestions">
+      <a href="browse.html?cat=lab" class="suggestion-chip">🔬 Lab Equipment</a>
+      <a href="browse.html?cat=formal" class="suggestion-chip">👔 Formal Wear</a>
+      <a href="browse.html?cat=shoes" class="suggestion-chip">👟 Shoes</a>
+      <a href="browse.html?cat=books" class="suggestion-chip">📚 Books</a>
+      <a href="browse.html?cat=other" class="suggestion-chip">📦 Other</a>
+    </div>
+
+    <!-- CTAs -->
+    <div class="cta-row">
+      <a href="list-item.html" class="btn btn-primary btn-pill">
+        <span class="material-symbols-outlined">add_circle</span>
+        Be the First to List This Item
+      </a>
+      <a href="browse.html" class="btn btn-outline btn-pill">
+        <span class="material-symbols-outlined">tune</span>
+        Clear Filters &amp; Browse All
+      </a>
+    </div>
+
+    <!-- Help text -->
+    <div style="margin-top:40px; padding:16px 20px; background:rgba(66,64,229,0.05); border:1px solid rgba(66,64,229,0.1); border-radius:var(--radius-xl); max-width:420px;">
+      <p style="font-weight:600; font-size:14px; margin-bottom:4px;">💡 Tip</p>
+      <p style="font-size:13px; color:var(--on-surface-variant); line-height:1.6;">Enable notifications so we can alert you when a matching item gets listed by another NIT Raipur student.</p>
+      <button class="btn btn-surface btn-sm" style="margin-top:12px;" onclick="showToast('Notification alert set! We\'ll ping you.')">
+        <span class="material-symbols-outlined" style="font-size:16px;">notifications</span> Notify Me When Listed
+      </button>
+    </div>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container footer__grid">
+    <div><a href="home.html" class="footer__brand">CampusKart</a><p class="footer__copy">© 2026 CampusKart. NIT Raipur.</p></div>
+    <div class="footer__links"><a href="#" class="footer__link">Safety Guide</a><a href="#" class="footer__link">Support</a></div>
+  </div>
+</footer>
+
+<!-- Mobile Bottom Nav -->
+<nav class="mobile-nav">
+  <a href="home.html" class="mobile-nav__item"><span class="material-symbols-outlined">home</span><span>Home</span></a>
+  <a href="browse.html" class="mobile-nav__item active"><span class="material-symbols-outlined icon-fill">explore</span><span>Browse</span></a>
+  <a href="list-item.html" class="mobile-nav__item"><span class="material-symbols-outlined">add_circle</span><span>List</span></a>
+  <a href="messages.html" class="mobile-nav__item"><span class="material-symbols-outlined">chat</span><span>Messages</span></a>
+  <a href="my-activity.html" class="mobile-nav__item"><span class="material-symbols-outlined">person</span><span>Me</span></a>
+</nav>
+
+<div id="toast-container"></div>
+
+<script>
+// Read query param
+const params = new URLSearchParams(location.search);
+const q = params.get('q');
+if(q) {
+  document.getElementById('empty-sub').innerHTML = `We couldn't find any listings for <strong>"${q}"</strong> on campus.<br/>Try different keywords, clear your filters — or be the first to list it!`;
+  document.getElementById('retry-search').value = q;
+}
+
+function goSearch() {
+  const q = document.getElementById('search-input').value.trim();
+  if(q) window.location.href = `browse.html?q=${encodeURIComponent(q)}`;
+}
+function goRetrySearch() {
+  const q = document.getElementById('retry-search').value.trim();
+  if(q) window.location.href = `browse.html?q=${encodeURIComponent(q)}`;
+}
+function showToast(msg) {
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className='toast success';
+  t.innerHTML=`<span class="material-symbols-outlined" style="font-size:18px">check_circle</span>${msg}`;
+  c.appendChild(t); setTimeout(()=>t.remove(),3100);
+}
+</script>
+</body>
+</html>

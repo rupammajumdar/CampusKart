@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CampusKart — Campus Marketplace for NIT Raipur</title>
+  <meta name="description" content="Buy, sell, and rent lab equipment, formal wear, shoes, books, and more. Exclusively for verified NIT Raipur students."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Sora:wght@700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="assets/style.css"/>
+  <script src="assets/api.js"></script>
+  <style>
+    /* Hero */
+    .hero {
+      position: relative;
+      background: var(--surface-container-lowest);
+      border-bottom: 1px solid var(--outline-variant);
+      overflow: hidden;
+      text-align: center;
+      padding: 64px 24px 56px;
+    }
+    .hero__pattern { position: absolute; inset: 0; pointer-events: none; }
+    .hero__pattern::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(var(--primary-fixed-dim) 1px, transparent 1px);
+      background-size: 20px 20px;
+      opacity: 0.35;
+    }
+    .hero__title { font-family: 'Sora', sans-serif; font-size: clamp(28px, 5vw, 52px); font-weight: 800; line-height: 1.15; margin-bottom: 16px; color: var(--on-surface); letter-spacing: -0.02em; position: relative; }
+    .hero__title .accent { color: var(--primary); }
+    .hero__sub { font-size: clamp(14px, 2vw, 18px); color: var(--on-surface-variant); max-width: 480px; margin: 0 auto 32px; position: relative; }
+    .hero__ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; }
+
+    /* Announcement banner */
+    .announcement-banner {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+      color: var(--on-primary);
+      text-align: center;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* Category grid */
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    @media (min-width: 640px) { .categories-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 900px) { .categories-grid { grid-template-columns: repeat(5, 1fr); } }
+
+    .category-tile {
+      background: var(--surface-container-lowest);
+      border: 1px solid var(--surface-container-high);
+      border-radius: var(--radius-xl);
+      padding: 20px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      box-shadow: var(--shadow-glow-sm);
+      aspect-ratio: 1;
+    }
+    .category-tile:hover { box-shadow: var(--shadow-glow-md); transform: translateY(-3px); }
+    .category-tile__icon {
+      width: 60px; height: 60px;
+      border-radius: var(--radius-full);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform var(--transition-fast);
+      font-size: 28px;
+    }
+    .category-tile:hover .category-tile__icon { transform: scale(1.1); }
+    .category-tile__name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+    }
+
+    /* Listings grid */
+    .listings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    @media (min-width: 768px) { .listings-grid { grid-template-columns: repeat(4, 1fr); } }
+
+    /* Section header */
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .section-title { font-family: 'Sora', sans-serif; font-size: clamp(18px, 3vw, 26px); font-weight: 700; }
+    .section-link { font-size: 13px; color: var(--primary); font-weight: 500; display: flex; align-items: center; gap: 2px; }
+    .section-link:hover { text-decoration: underline; }
+
+    /* Stats bar */
+    .stats-bar {
+      background: var(--surface-container-lowest);
+      border-bottom: 1px solid var(--outline-variant);
+      padding: 12px 0;
+    }
+    .stats-bar__inner { display: flex; gap: 32px; justify-content: center; flex-wrap: wrap; }
+    .stat-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--on-surface-variant); }
+    .stat-item strong { color: var(--primary); font-size: 16px; font-weight: 700; }
+
+    main { padding-bottom: 80px; }
+    @media (min-width: 768px) { main { padding-bottom: 0; } }
+  </style>
+</head>
+<body class="page-wrapper">
+
+<!-- Top Developer & Campus Bar (AT THE TOP) -->
+<div class="dev-topbar">
+  <div class="dev-topbar__inner">
+    <div class="dev-topbar__nitrr">
+      <img src="IMAGES/gate_nitrr_2026.jpg" alt="NIT Raipur Gate" class="dev-topbar__nitrr-img"/>
+      <span>NIT Raipur Official Student Marketplace</span>
+    </div>
+    <a href="https://www.linkedin.com/in/rupam2007/" target="_blank" rel="noopener noreferrer" class="dev-topbar__dev" title="Developer LinkedIn Profile">
+      <img src="IMAGES/rupam_photo.png" alt="Rupam Developer" class="dev-topbar__dev-img"/>
+      <span class="dev-topbar__dev-text">Developed by <strong>Rupam</strong> ↗</span>
+    </a>
+  </div>
+</div>
+
+<!-- Announcement banner -->
+<div class="announcement-banner" id="banner">
+  <span class="material-symbols-outlined" style="font-size:18px">campaign</span>
+  <span>🎉 New batch welcome! List your lab kits &amp; earn extra this semester.</span>
+  <button onclick="document.getElementById('banner').remove()" style="margin-left:12px; opacity:0.7; font-size:18px;">×</button>
+</div>
+
+<!-- Top Nav -->
+<header class="topnav">
+  <div class="container topnav__inner">
+    <a href="home.html" class="topnav__brand">
+      <img src="IMAGES/gate_nitrr_2026.jpg" alt="NIT RR" class="topnav__brand-img"/>
+      <span>CampusKart</span>
+    </a>
+    <div class="topnav__search">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input type="text" placeholder="Search books, lab gear, formal wear..." id="search-input" onkeydown="if(event.key==='Enter') goSearch()"/>
+    </div>
+    <nav class="topnav__links">
+      <a href="home.html" class="topnav__link active">Home</a>
+      <a href="browse.html" class="topnav__link">Browse</a>
+      <a href="messages.html" class="topnav__link">Messages</a>
+      <a href="my-activity.html" class="topnav__link">My Activity</a>
+    </nav>
+    <div class="topnav__actions">
+      <a href="messages.html" class="topnav__icon-btn" title="Messages">
+        <span class="material-symbols-outlined">chat</span>
+      </a>
+      <a href="my-activity.html" class="topnav__icon-btn" title="Wishlist">
+        <span class="material-symbols-outlined">favorite</span>
+      </a>
+      <a href="list-item.html" class="btn btn-primary btn-sm btn-pill" style="margin-left:4px; display:none;" id="list-btn-desktop">
+        + List Item
+      </a>
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAipeKRy_FU0CznwSCsCN0sIUefdWMW-GVIjIhgN1rE2AbUW6uYxoZTZPBFlHWv2tKaN6rhftNlDnEfzGW-PqjchVRINYoByYT88q8GInzVwCjhc5XcVb91mTxNTclQy8i7wpRJRHTbPf5lrlvaTtrJii0y2rtONNnBTdUnotp5gDuPFHwoDJoc74esfqM3NAdAGKn_OlGtlVHtUJKy1BmE6VCNc9Z0JYhR1OlYFBCO2h6ZsU0yKLwQnA" alt="Profile" class="topnav__avatar" title="Profile" onclick="window.location.href='lister-dashboard.html'"/>
+    </div>
+  </div>
+</header>
+
+<main class="flex-1">
+  <!-- Stats bar -->
+  <div class="stats-bar">
+    <div class="container stats-bar__inner">
+      <div class="stat-item"><strong id="stat-students">--</strong> verified students</div>
+      <div class="stat-item"><strong id="stat-listings">--</strong> active listings</div>
+      <div class="stat-item"><strong id="stat-ratings">--%</strong> positive ratings</div>
+      <div class="stat-item"><strong>NIT Raipur</strong> exclusive</div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero__pattern"></div>
+
+    <!-- NIT Raipur Badge with Gate Photo & Developer Info -->
+    <div style="display:flex; justify-content:center; align-items:center; margin-bottom:20px; gap:10px; flex-wrap:wrap;">
+      <div style="display:inline-flex; align-items:center; gap:10px; background:var(--surface-container-lowest); padding:6px 18px 6px 6px; border-radius:var(--radius-full); border:1px solid var(--outline-variant); box-shadow:var(--shadow-glow-sm);">
+        <img src="IMAGES/gate_nitrr_2026.jpg" alt="NIT Raipur Campus Gate" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--primary);"/>
+        <div style="text-align:left;">
+          <div style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.05em;">NIT Raipur Exclusive</div>
+          <div style="font-size:12px; color:var(--on-surface-variant); font-weight:600;">National Institute of Technology Raipur</div>
+        </div>
+      </div>
+
+      <a href="https://www.linkedin.com/in/rupam2007/" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:8px; background:var(--surface-container-lowest); padding:6px 16px 6px 6px; border-radius:var(--radius-full); border:1px solid var(--outline-variant); box-shadow:var(--shadow-glow-sm); text-decoration:none; transition:all var(--transition-base);">
+        <img src="IMAGES/rupam_photo.png" alt="Rupam Developer" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid #6366f1;"/>
+        <div style="text-align:left;">
+          <div style="font-size:10px; font-weight:700; color:#6366f1; text-transform:uppercase; letter-spacing:0.05em;">Developed by</div>
+          <div style="font-size:12px; color:var(--on-surface); font-weight:700;">Rupam <span style="font-size:11px; font-weight:400; color:var(--on-surface-variant);">(NIT Raipur)</span> ↗</div>
+        </div>
+      </a>
+    </div>
+
+    <h1 class="hero__title">Your Campus Marketplace.<br/><span class="accent">Upgraded.</span></h1>
+    <p class="hero__sub">Buy, sell, and rent lab equipment, formal wear, books &amp; more — exclusively with verified NIT Raipur students.</p>
+    <div id="hero-mobile-search" style="max-width:400px; margin: 0 auto 24px; position:relative; display:none;">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input class="input-field" type="text" placeholder="Search items…" style="padding-left:44px;"/>
+    </div>
+    <div class="hero__ctas">
+      <a href="browse.html" class="btn btn-primary btn-pill">
+        <span class="material-symbols-outlined">explore</span>
+        Start Browsing
+      </a>
+      <a href="list-item.html" class="btn btn-surface btn-pill">List an Item</a>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section style="padding: 48px 0 32px;">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Explore Categories</h2>
+        <a href="browse.html" class="section-link">See All <span class="material-symbols-outlined" style="font-size:16px;">chevron_right</span></a>
+      </div>
+      <div class="categories-grid">
+        <a href="browse.html?cat=lab" class="category-tile" id="cat-lab">
+          <div class="category-tile__icon" style="background: var(--primary-fixed);">🔬</div>
+          <span class="category-tile__name">Lab Equipment</span>
+        </a>
+        <a href="browse.html?cat=formal" class="category-tile" id="cat-formal">
+          <div class="category-tile__icon" style="background: var(--secondary-container);">👔</div>
+          <span class="category-tile__name">Formal Wear</span>
+        </a>
+        <a href="browse.html?cat=shoes" class="category-tile" id="cat-shoes">
+          <div class="category-tile__icon" style="background: var(--tertiary-fixed);">👟</div>
+          <span class="category-tile__name">Shoes</span>
+        </a>
+        <a href="browse.html?cat=books" class="category-tile" id="cat-books">
+          <div class="category-tile__icon" style="background: var(--primary-fixed);">📚</div>
+          <span class="category-tile__name">Books</span>
+        </a>
+        <a href="browse.html?cat=other" class="category-tile" style="grid-column: span 2;" id="cat-other">
+          <div class="category-tile__icon" style="background: var(--surface-variant);">📦</div>
+          <span class="category-tile__name">Other</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Fresh Listings -->
+  <section style="padding: 16px 0 48px;">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Fresh on Campus</h2>
+        <a href="browse.html" class="section-link">View all <span class="material-symbols-outlined" style="font-size:16px;">chevron_right</span></a>
+      </div>
+      <div class="listings-grid" id="listings-grid">
+        <!-- Listing 1 -->
+        <a href="item.html" class="card listing-card">
+          <div class="listing-card__image">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWGyXM56nVVWhBsdpX_tcih5Wq0OPD0aPot_JtVwdgrRKH-_LVo3PIobe0dnf6Pz2kcmnkU2I9v1uM7glJDjz0Zbw28CE610r_gVUxBLfuknwopGiqREzPk1xU6u8IIQkpcdHkval8ghyyFkcFp75h4ryXg1ZYM23ct140gk74kF_hdCYvSytXPYIo1FJGVMzOhB_pxrXBZTxNThDP9ZBAxMmt06q6HT2jqcMdkYuJCfCB_Mb7H6irKw" alt="Lab Coat Size M"/>
+            <button class="listing-card__wishlist" onclick="event.preventDefault(); toggleWishlist(this)" title="Save to wishlist">
+              <span class="material-symbols-outlined icon-fill" style="font-size:18px;">favorite</span>
+            </button>
+            <span class="listing-card__type-badge badge badge-rent">Rent</span>
+          </div>
+          <div class="listing-card__body">
+            <h3 class="listing-card__title">Lab Coat – Size M (Like New)</h3>
+            <div class="listing-card__price">₹80 <span>/ semester</span></div>
+            <div class="listing-card__meta">
+              <span class="font-label" style="color:var(--on-surface-variant); text-transform:uppercase; font-size:10px;">Lab Equipment</span>
+              <span class="badge badge-condition-new badge-pill font-label" style="font-size:10px;">Like New</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Listing 2 -->
+        <a href="item.html" class="card listing-card">
+          <div class="listing-card__image">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwDXCROZ7hhvyp_hdIaFiFzcAPWGGOmBi-Ec3_CLf_sDuDj9W9GPC0bi7ymSAJui1Qc6CcAzfIEDgYrtDqZnmgqVstpYIEqsqAE_HUWkr_4dBbXHJlxCVgsGOp5Ng1fOj2rhiIqf-C6dONNwgn2xN5UfHUILFQ3X9-jvMNB7vkSFxNavEeq9qXre5Y4YhLzPFxE4VY8SPfzLoKl4qIE2K5sulbNGQXyRGPU1mxhgiTWwlwe0nMd9B9VA" alt="Digital Electronics book"/>
+            <button class="listing-card__wishlist" onclick="event.preventDefault(); toggleWishlist(this)" title="Save to wishlist">
+              <span class="material-symbols-outlined" style="font-size:18px;">favorite</span>
+            </button>
+            <span class="listing-card__type-badge badge badge-buy">Buy</span>
+          </div>
+          <div class="listing-card__body">
+            <h3 class="listing-card__title">Digital Electronics by Morris Mano</h3>
+            <div class="listing-card__price">₹180</div>
+            <div class="listing-card__meta">
+              <span class="font-label" style="color:var(--on-surface-variant); text-transform:uppercase; font-size:10px;">Books</span>
+              <span class="badge badge-condition-good badge-pill font-label" style="font-size:10px;">Good</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Listing 3 -->
+        <a href="item.html" class="card listing-card">
+          <div class="listing-card__image">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGzwmZSuL3Jv61pST8-qKsthNu5ClG5RB88whXmfVwh70w6P9UvK16ywA7peOArLkHJ76JvPc6P907ZYxKcS3pD7pAboLagM0LJ-REB8HhQ75o-kYC3gwNld114es61MoIocwUJ0cOtg6g2AAetvngXUpl3tVyX3-T0yCCdbKdjSfLUicXUYH7t0IJPbJHKldPiTtsnc1rKZ8JEKAr25_Vn46IWzl5HDXyg9EGB3e3Ces-jKkPMwN45Q" alt="Formal Blazer"/>
+            <button class="listing-card__wishlist" onclick="event.preventDefault(); toggleWishlist(this)" title="Save to wishlist">
+              <span class="material-symbols-outlined" style="font-size:18px;">favorite</span>
+            </button>
+            <span class="listing-card__type-badge badge badge-rent">Rent</span>
+          </div>
+          <div class="listing-card__body">
+            <h3 class="listing-card__title">Formal Blazer – Navy Blue (Size 40)</h3>
+            <div class="listing-card__price">₹250 <span>/ week</span></div>
+            <div class="listing-card__meta">
+              <span class="font-label" style="color:var(--on-surface-variant); text-transform:uppercase; font-size:10px;">Formal Wear</span>
+              <span class="badge badge-condition-new badge-pill font-label" style="font-size:10px;">Like New</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Listing 4 -->
+        <a href="item.html" class="card listing-card">
+          <div class="listing-card__image">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJzSFJNWilfE_AdVoiqOEZd5_PHIq4Qat13CBIIvS6jXCrqvyx89WWFI5fF3P--QPdOgcMWHCjpLi2d48yNJg0eeme7MgfLIAtmWimVgIAPyX4OxFBPh5SZWRlZTFJnhKazpMfafkLjR_Gmj_TSaJMtHpD9rr85Nr5UDcdJXYmpk3JqdxFuSxIy5hLa2wWof2KRA63et3dDofbNyjwtfAQyDExLcXu8zqJ0vOotf91R3g-t_lNLUqlgA" alt="Formal shoes"/>
+            <button class="listing-card__wishlist" onclick="event.preventDefault(); toggleWishlist(this)" title="Save to wishlist">
+              <span class="material-symbols-outlined" style="font-size:18px;">favorite</span>
+            </button>
+            <span class="listing-card__type-badge badge badge-buy">Buy</span>
+          </div>
+          <div class="listing-card__body">
+            <h3 class="listing-card__title">Oxford Formal Shoes – Size 9 (Black)</h3>
+            <div class="listing-card__price">₹650</div>
+            <div class="listing-card__meta">
+              <span class="font-label" style="color:var(--on-surface-variant); text-transform:uppercase; font-size:10px;">Shoes</span>
+              <span class="badge badge-condition-good badge-pill font-label" style="font-size:10px;">Good</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust Section -->
+  <section style="background: var(--surface-container-lowest); border-top: 1px solid var(--outline-variant); padding: 48px 0;">
+    <div class="container">
+      <h2 class="section-title" style="text-align:center; margin-bottom:36px;">Why CampusKart?</h2>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:24px;">
+        <div style="text-align:center; padding: 24px 16px;">
+          <div style="font-size:36px; margin-bottom:12px;">🛡️</div>
+          <h3 style="font-weight:700; font-size:16px; margin-bottom:6px;">Verified Students Only</h3>
+          <p style="font-size:13px; color:var(--on-surface-variant);">Every user is verified with their @nitrr.ac.in email. No strangers.</p>
+        </div>
+        <div style="text-align:center; padding: 24px 16px;">
+          <div style="font-size:36px; margin-bottom:12px;">💬</div>
+          <h3 style="font-weight:700; font-size:16px; margin-bottom:6px;">In-App Messaging</h3>
+          <p style="font-size:13px; color:var(--on-surface-variant);">Chat safely on-platform. No WhatsApp numbers shared.</p>
+        </div>
+        <div style="text-align:center; padding: 24px 16px;">
+          <div style="font-size:36px; margin-bottom:12px;">⭐</div>
+          <h3 style="font-weight:700; font-size:16px; margin-bottom:6px;">Ratings &amp; Reviews</h3>
+          <p style="font-size:13px; color:var(--on-surface-variant);">Every transaction is rated. Trust is earned, not assumed.</p>
+        </div>
+        <div style="text-align:center; padding: 24px 16px;">
+          <div style="font-size:36px; margin-bottom:12px;">🤝</div>
+          <h3 style="font-weight:700; font-size:16px; margin-bottom:6px;">Meet on Campus</h3>
+          <p style="font-size:13px; color:var(--on-surface-variant);">Suggest safe meetup spots: Gate 2, Library, Hostels.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container footer__grid">
+    <div>
+      <a href="home.html" class="footer__brand">CampusKart</a>
+      <p class="footer__copy">© 2026 CampusKart. Built for students, by students.<br/>NIT Raipur, Chhattisgarh</p>
+    </div>
+    <div class="footer__links">
+      <a href="#" class="footer__link">University Terms</a>
+      <a href="#" class="footer__link">Safety Guide</a>
+      <a href="#" class="footer__link">Support</a>
+      <a href="#" class="footer__link">Campus Map</a>
+      <a href="admin.html" class="footer__link">Admin</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Mobile Bottom Nav -->
+<nav class="mobile-nav" aria-label="Mobile navigation">
+  <a href="home.html" class="mobile-nav__item active">
+    <span class="material-symbols-outlined icon-fill">home</span>
+    <span>Home</span>
+  </a>
+  <a href="browse.html" class="mobile-nav__item">
+    <span class="material-symbols-outlined">explore</span>
+    <span>Browse</span>
+  </a>
+  <a href="list-item.html" class="mobile-nav__item">
+    <span class="material-symbols-outlined">add_circle</span>
+    <span>List</span>
+  </a>
+  <a href="messages.html" class="mobile-nav__item">
+    <span class="material-symbols-outlined">chat</span>
+    <span>Messages</span>
+  </a>
+  <a href="my-activity.html" class="mobile-nav__item">
+    <span class="material-symbols-outlined">person</span>
+    <span>Me</span>
+  </a>
+</nav>
+
+<div id="toast-container"></div>
+
+<script>
+  API.checkUrlToken();
+
+  const currentUser = API.getUser();
+  if (currentUser?.role === 'admin') {
+    const nav = document.querySelector('.topnav__links');
+    if (nav && !nav.querySelector('[href="admin.html"]')) {
+      nav.insertAdjacentHTML('beforeend', '<a href="admin.html" class="topnav__link" style="color:var(--primary); font-weight:700;">Admin Panel</a>');
+    }
+  }
+
+  // Show desktop list button
+  document.getElementById('list-btn-desktop').style.display = 'inline-flex';
+
+  // Show mobile search in hero
+  if(window.innerWidth < 768) document.getElementById('hero-mobile-search').style.display = 'block';
+
+  function goSearch() {
+    const q = document.getElementById('search-input').value.trim();
+    if(q) window.location.href = `browse.html?q=${encodeURIComponent(q)}`;
+  }
+
+  async function toggleWishlist(btn, listingId) {
+    if (!API.isLoggedIn()) {
+      API.toast('Please sign in to save items to wishlist', 'info');
+      setTimeout(() => window.location.href = 'index.html', 1200);
+      return;
+    }
+    const res = await API.users.toggleWishlist(listingId);
+    if (res.ok) {
+      btn.classList.toggle('active', res.wishlisted);
+      API.toast(res.wishlisted ? 'Added to wishlist' : 'Removed from wishlist');
+    } else {
+      API.toast(res.error || 'Failed to update wishlist', 'error');
+    }
+  }
+
+  // Load real listings from API
+  async function loadHomeListings() {
+    const grid = document.getElementById('listings-grid');
+    const res = await API.listings.browse({ limit: 8, sort: 'newest' });
+    if (res.ok && res.listings && res.listings.length > 0) {
+      grid.innerHTML = res.listings.map(item => `
+        <a href="item.html?id=${item._id}" class="card listing-card">
+          <div class="listing-card__image">
+            <img src="${API.listingPhoto(item)}" alt="${item.title}"/>
+            <button class="listing-card__wishlist" onclick="event.preventDefault(); toggleWishlist(this, '${item._id}')" title="Save to wishlist">
+              <span class="material-symbols-outlined icon-fill" style="font-size:18px;">favorite</span>
+            </button>
+            <span class="listing-card__type-badge badge badge-${item.listingType === 'rent' ? 'rent' : 'sell'}">${item.listingType === 'rent' ? 'Rent' : 'Buy'}</span>
+          </div>
+          <div class="listing-card__body">
+            <h3 class="listing-card__title">${item.title}</h3>
+            <div class="listing-card__price">${API.formatPrice(item)}</div>
+            <div class="listing-card__meta">
+              <span class="font-label" style="color:var(--on-surface-variant); text-transform:uppercase; font-size:10px;">${item.category}</span>
+              <span class="badge badge-condition-new badge-pill font-label" style="font-size:10px;">${item.condition}</span>
+            </div>
+          </div>
+        </a>
+      `).join('');
+    }
+  }
+
+  // Load real-time statistics from backend MongoDB
+  async function loadLiveStats() {
+    try {
+      const res = await API.listings.stats();
+      if (res && res.ok) {
+        if (document.getElementById('stat-students')) document.getElementById('stat-students').textContent = res.verifiedStudents ? `${res.verifiedStudents.toLocaleString()}+` : '1+';
+        if (document.getElementById('stat-listings')) document.getElementById('stat-listings').textContent = res.activeListings !== undefined ? res.activeListings : '0';
+        if (document.getElementById('stat-ratings')) document.getElementById('stat-ratings').textContent = res.positiveRatings !== undefined ? `${res.positiveRatings}%` : '100%';
+      }
+    } catch (e) {
+      console.error('Failed to load live stats:', e);
+    }
+  }
+
+  loadHomeListings();
+  loadLiveStats();
+</script>
+</body>
+</html>

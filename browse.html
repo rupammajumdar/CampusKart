@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CampusKart — Browse Listings</title>
+  <meta name="description" content="Browse all available items for rent or sale on CampusKart — lab equipment, formal wear, shoes, books, and more."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Sora:wght@700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="assets/style.css"/>
+  <script src="assets/api.js"></script>
+  <style>
+    body { background: var(--surface-bright); }
+    .browse-layout {
+      display: flex;
+      max-width: var(--container-max);
+      margin: 0 auto;
+      height: calc(100vh - 64px);
+      overflow: hidden;
+    }
+    .sidebar { padding: 0; }
+    .sidebar-inner { padding: 20px; overflow-y: auto; height: 100%; }
+    .sidebar-title { font-family:'Sora',sans-serif; font-size:22px; font-weight:700; color:var(--primary); margin-bottom:4px; }
+    .sidebar-sub { font-size:13px; color:var(--on-surface-variant); margin-bottom:16px; }
+    .browse-content { flex:1; overflow-y:auto; padding:24px var(--margin-desktop); }
+    @media (max-width: 767px) {
+      .browse-layout { flex-direction: column; height: auto; overflow: visible; }
+      .sidebar { display: none; }
+      .sidebar.mobile-open { display: flex; position:fixed; inset:0; z-index:150; width:280px; left:0; top:0; height:100vh; box-shadow: var(--shadow-glow-lg); animation: slideRight 0.25s ease; }
+      .mobile-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:149; }
+      .mobile-overlay.open { display:block; }
+      .browse-content { padding: 16px; }
+    }
+    @keyframes slideRight { from{transform:translateX(-100%)} to{transform:translateX(0)} }
+    .page-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px; }
+    .page-title { font-family:'Sora',sans-serif; font-size:clamp(24px,4vw,40px); font-weight:800; letter-spacing:-0.02em; }
+    .page-sub { font-size:14px; color:var(--on-surface-variant); margin-top:4px; }
+    .sort-row { display:flex; align-items:center; gap:8px; }
+    .listing-count { font-size:13px; color:var(--on-surface-variant); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    @media (min-width: 640px)  { .grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 1000px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+    .mobile-filter-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--surface-container-lowest);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    @media (min-width: 768px) { .mobile-filter-btn { display: none; } }
+    .price-inputs { display:flex; gap:8px; align-items:center; }
+    .price-inputs input { flex:1; }
+    .load-more-wrap { display:flex; justify-content:center; padding: 32px 0; }
+    footer.footer { margin-top: 40px; }
+  </style>
+</head>
+<body class="page-wrapper">
+<!-- Top Developer & Campus Bar (AT THE TOP) -->
+<div class="dev-topbar">
+  <div class="dev-topbar__inner">
+    <div class="dev-topbar__nitrr">
+      <img src="IMAGES/gate_nitrr_2026.jpg" alt="NIT Raipur Gate" class="dev-topbar__nitrr-img"/>
+      <span>NIT Raipur Official Student Marketplace</span>
+    </div>
+    <a href="https://www.linkedin.com/in/rupam2007/" target="_blank" rel="noopener noreferrer" class="dev-topbar__dev" title="Developer LinkedIn Profile">
+      <img src="IMAGES/rupam_photo.png" alt="Rupam Developer" class="dev-topbar__dev-img"/>
+      <span class="dev-topbar__dev-text">Developed by <strong>Rupam</strong> ↗</span>
+    </a>
+  </div>
+</div>
+
+<!-- Top Nav -->
+<header class="topnav">
+  <div class="container topnav__inner">
+    <a href="home.html" class="topnav__brand">
+      <img src="IMAGES/gate_nitrr_2026.jpg" alt="NIT RR" class="topnav__brand-img"/>
+      <span>CampusKart</span>
+    </a>
+    <div class="topnav__search">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input type="text" id="search-input" placeholder="Search listings…" onkeydown="if(event.key==='Enter') applyFilters()"/>
+    </div>
+    <nav class="topnav__links">
+      <a href="home.html" class="topnav__link">Home</a>
+      <a href="browse.html" class="topnav__link active">Browse</a>
+      <a href="messages.html" class="topnav__link">Messages</a>
+      <a href="my-activity.html" class="topnav__link">My Activity</a>
+    </nav>
+    <div class="topnav__actions">
+      <a href="messages.html" class="topnav__icon-btn"><span class="material-symbols-outlined">chat</span></a>
+      <a href="list-item.html" class="btn btn-primary btn-sm btn-pill">+ List Item</a>
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAipeKRy_FU0CznwSCsCN0sIUefdWMW-GVIjIhgN1rE2AbUW6uYxoZTZPBFlHWv2tKaN6rhftNlDnEfzGW-PqjchVRINYoByYT88q8GInzVwCjhc5XcVb91mTxNTclQy8i7wpRJRHTbPf5lrlvaTtrJii0y2rtONNnBTdUnotp5gDuPFHwoDJoc74esfqM3NAdAGKn_OlGtlVHtUJKy1BmE6VCNc9Z0JYhR1OlYFBCO2h6ZsU0yKLwQnA" alt="Profile" class="topnav__avatar" onclick="window.location.href='lister-dashboard.html'"/>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-overlay" id="mobile-overlay" onclick="closeFilters()"></div>
+
+<div class="browse-layout">
+  <!-- Sidebar / Filters -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+      <p class="sidebar-title">Browse</p>
+      <p class="sidebar-sub">Find what you need</p>
+
+      <!-- Category nav -->
+      <nav style="display:flex; flex-direction:column; gap:4px; margin-bottom:16px;" id="cat-nav">
+        <button class="nav-item active" data-cat="all" onclick="selectCat(this)"><span class="material-symbols-outlined">grid_view</span> All Items</button>
+        <button class="nav-item" data-cat="lab" onclick="selectCat(this)"><span class="material-symbols-outlined">science</span> Lab Equipment</button>
+        <button class="nav-item" data-cat="formal" onclick="selectCat(this)"><span class="material-symbols-outlined">dry_cleaning</span> Formal Wear</button>
+        <button class="nav-item" data-cat="shoes" onclick="selectCat(this)"><span class="material-symbols-outlined">footprint</span> Shoes</button>
+        <button class="nav-item" data-cat="books" onclick="selectCat(this)"><span class="material-symbols-outlined">book</span> Books</button>
+        <button class="nav-item" data-cat="other" onclick="selectCat(this)"><span class="material-symbols-outlined">inventory_2</span> Other</button>
+      </nav>
+
+      <hr class="divider" style="margin:12px 0;"/>
+
+      <!-- Transaction type -->
+      <div class="filter-section" style="padding:0; border:none; margin-bottom:20px;">
+        <p class="filter-section__title">Transaction Type</p>
+        <div class="toggle-group" id="type-toggle">
+          <button class="active" onclick="selectType(this,'all')">All</button>
+          <button onclick="selectType(this,'buy')">Buy</button>
+          <button onclick="selectType(this,'rent')">Rent</button>
+        </div>
+      </div>
+
+      <!-- Price range -->
+      <div class="filter-section" style="padding:0; border:none; margin-bottom:20px;">
+        <p class="filter-section__title">Price Range (₹)</p>
+        <div class="price-inputs">
+          <input class="input-field" type="number" id="price-min" placeholder="Min" style="padding:8px 12px; font-size:13px;"/>
+          <span style="color:var(--outline);">—</span>
+          <input class="input-field" type="number" id="price-max" placeholder="Max" style="padding:8px 12px; font-size:13px;"/>
+        </div>
+      </div>
+
+      <!-- Condition -->
+      <div class="filter-section" style="padding:0; border:none; margin-bottom:20px;">
+        <p class="filter-section__title">Condition</p>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <label class="checkbox-label"><input type="checkbox" checked id="cond-new" onchange="applyFilters()"/> Like New</label>
+          <label class="checkbox-label"><input type="checkbox" checked id="cond-good" onchange="applyFilters()"/> Good</label>
+          <label class="checkbox-label"><input type="checkbox" id="cond-fair" onchange="applyFilters()"/> Fair</label>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full" onclick="applyFilters(); closeFilters()">Apply Filters</button>
+      <button class="btn btn-surface btn-full" style="margin-top:8px;" onclick="clearFilters()">Clear All</button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <section class="browse-content">
+    <!-- Mobile header row -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h1 id="section-title-mobile" style="font-family:'Sora',sans-serif; font-size:22px; font-weight:700; display:none;">All Items</h1>
+      <button class="mobile-filter-btn" onclick="openFilters()">
+        <span class="material-symbols-outlined" style="font-size:18px;">tune</span> Filters
+      </button>
+    </div>
+
+    <!-- Desktop page header -->
+    <div class="page-header" id="page-header-desktop">
+      <div>
+        <h1 class="page-title" id="page-title">Explore Campus</h1>
+        <p class="page-sub" id="result-count">Showing all listings available on campus.</p>
+      </div>
+      <div class="sort-row">
+        <span class="font-label" style="color:var(--on-surface-variant); text-transform:uppercase; font-size:10px;">Sort by:</span>
+        <div class="select-wrapper">
+          <select class="input-field" id="sort-select" onchange="applyFilters()" style="padding:7px 36px 7px 12px; font-size:13px;">
+            <option value="newest">Newest First</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+          </select>
+          <span class="material-symbols-outlined select-wrapper__arrow" style="font-size:18px;">expand_more</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Listing grid -->
+    <div class="grid" id="listings-grid"></div>
+
+    <!-- Empty state -->
+    <div id="empty-state" style="display:none; text-align:center; padding:60px 24px;">
+      <div style="font-size:64px; margin-bottom:16px;">🔍</div>
+      <h3 style="font-family:'Sora',sans-serif; font-size:22px; font-weight:700; margin-bottom:8px;">No items found</h3>
+      <p style="color:var(--on-surface-variant); margin-bottom:24px;">Try adjusting filters or <a href="list-item.html" style="color:var(--primary);">be the first to list one!</a></p>
+      <button class="btn btn-primary" onclick="clearFilters()">Clear Filters</button>
+    </div>
+
+    <!-- Load more -->
+    <div class="load-more-wrap" id="load-more-wrap">
+      <button class="btn btn-outline btn-pill" onclick="loadMore()">Load More Items</button>
+    </div>
+
+    <footer class="footer">
+      <div class="container footer__grid">
+        <div><a href="home.html" class="footer__brand">CampusKart</a><p class="footer__copy">© 2026 CampusKart. NIT Raipur.</p></div>
+        <div class="footer__links">
+          <a href="#" class="footer__link">Safety Guide</a>
+          <a href="#" class="footer__link">Support</a>
+        </div>
+      </div>
+    </footer>
+  </section>
+</div>
+
+<!-- Mobile Bottom Nav -->
+<nav class="mobile-nav">
+  <a href="home.html" class="mobile-nav__item"><span class="material-symbols-outlined">home</span><span>Home</span></a>
+  <a href="browse.html" class="mobile-nav__item active"><span class="material-symbols-outlined icon-fill">explore</span><span>Browse</span></a>
+  <a href="list-item.html" class="mobile-nav__item"><span class="material-symbols-outlined">add_circle</span><span>List</span></a>
+  <a href="messages.html" class="mobile-nav__item"><span class="material-symbols-outlined">chat</span><span>Messages</span></a>
+  <a href="my-activity.html" class="mobile-nav__item"><span class="material-symbols-outlined">person</span><span>Me</span></a>
+</nav>
+
+<div id="toast-container"></div>
+
+<script>
+  API.checkUrlToken();
+
+  let currentPage = 1;
+  let activeCat = 'all';
+  let activeType = 'all';
+
+  const categoryMap = {
+    lab: 'Lab Equipment',
+    formal: 'Formal Wear',
+    shoes: 'Shoes',
+    books: 'Books',
+    other: 'Other'
+  };
+
+  async function fetchBrowseListings() {
+    const grid = document.getElementById('listings-grid') || document.getElementById('browse-grid');
+    if (!grid) return;
+    const searchInput = document.getElementById('search-input');
+    const q = searchInput ? searchInput.value.trim() : '';
+
+    const minPrice = document.getElementById('price-min')?.value;
+    const maxPrice = document.getElementById('price-max')?.value;
+
+    const params = {
+      page: currentPage,
+      limit: 12
+    };
+
+    if (q) params.q = q;
+    if (activeCat !== 'all' && categoryMap[activeCat]) params.category = categoryMap[activeCat];
+    if (activeType !== 'all') params.type = activeType;
+    if (minPrice) params.minPrice = minPrice;
+    if (maxPrice) params.maxPrice = maxPrice;
+
+    const res = await API.listings.browse(params);
+
+    if (res.ok) {
+      if (!res.listings || res.listings.length === 0) {
+        if (q) {
+          window.location.href = `no-results.html?q=${encodeURIComponent(q)}`;
+          return;
+        }
+        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:48px 0; color:var(--on-surface-variant);">
+          <span class="material-symbols-outlined" style="font-size:48px; color:var(--outline);">search_off</span>
+          <h3>No listings found</h3>
+          <p>Try clearing filters or searching for something else.</p>
+        </div>`;
+        const rc = document.getElementById('result-count');
+        if (rc) rc.textContent = 'Showing 0 listings';
+        return;
+      }
+
+      const rc = document.getElementById('result-count');
+      if (rc) rc.textContent = `Showing ${res.listings.length} of ${res.total} listings`;
+
+      const cardsHtml = res.listings.map(item => `
+        <a href="item.html?id=${item._id}" class="card listing-card">
+          <div class="listing-card__image">
+            <img src="${API.listingPhoto(item)}" alt="${item.title}"/>
+            <button class="listing-card__wishlist" onclick="event.preventDefault(); toggleWishlist(this, '${item._id}')" title="Save to wishlist">
+              <span class="material-symbols-outlined icon-fill" style="font-size:18px;">favorite</span>
+            </button>
+            <span class="listing-card__type-badge badge badge-${item.listingType === 'rent' ? 'rent' : 'sell'}">${item.listingType === 'rent' ? 'Rent' : 'Buy'}</span>
+          </div>
+          <div class="listing-card__body">
+            <h3 class="listing-card__title">${item.title}</h3>
+            <div class="listing-card__price">${API.formatPrice(item)}</div>
+            <div class="listing-card__meta">
+              <span class="font-label" style="color:var(--on-surface-variant); text-transform:uppercase; font-size:10px;">${item.category}</span>
+              <span class="badge badge-condition-new badge-pill font-label" style="font-size:10px;">${item.condition}</span>
+            </div>
+          </div>
+        </a>
+      `).join('');
+
+      if (currentPage === 1) {
+        grid.innerHTML = cardsHtml;
+      } else {
+        grid.insertAdjacentHTML('beforeend', cardsHtml);
+      }
+
+      const loadMoreBtn = document.getElementById('load-more-wrap') || document.getElementById('load-more-btn');
+      if (loadMoreBtn) {
+        loadMoreBtn.style.display = currentPage < res.pages ? 'flex' : 'none';
+      }
+    }
+  }
+
+  function applyFilters() {
+    currentPage = 1;
+    fetchBrowseListings();
+  }
+
+  function clearFilters() {
+    activeCat = 'all'; activeType = 'all';
+    document.querySelectorAll('#cat-nav .nav-item').forEach((b,i) => b.classList.toggle('active', i===0));
+    document.querySelectorAll('#type-toggle button').forEach((b,i) => b.classList.toggle('active', i===0));
+    if (document.getElementById('price-min')) document.getElementById('price-min').value = '';
+    if (document.getElementById('price-max')) document.getElementById('price-max').value = '';
+    applyFilters();
+  }
+
+  function selectCat(btn) {
+    activeCat = btn.dataset.cat;
+    document.querySelectorAll('#cat-nav .nav-item').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const titles = {all:'Explore Campus',lab:'Lab Equipment',formal:'Formal Wear',shoes:'Shoes',books:'Books',other:'Other'};
+    if (document.getElementById('page-title')) document.getElementById('page-title').textContent = titles[activeCat] || 'Explore Campus';
+    applyFilters();
+  }
+
+  function selectType(btn, type) {
+    activeType = type;
+    document.querySelectorAll('#type-toggle button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+  }
+
+  function loadMore() {
+    currentPage++;
+    fetchBrowseListings();
+  }
+
+  function openFilters()  { document.getElementById('sidebar')?.classList.add('mobile-open'); document.getElementById('mobile-overlay')?.classList.add('open'); }
+  function closeFilters() { document.getElementById('sidebar')?.classList.remove('mobile-open'); document.getElementById('mobile-overlay')?.classList.remove('open'); }
+
+  async function toggleWishlist(btn, listingId) {
+    if (!API.isLoggedIn()) {
+      API.toast('Please sign in to save items', 'info');
+      setTimeout(() => window.location.href = 'index.html', 1200);
+      return;
+    }
+    const res = await API.users.toggleWishlist(listingId);
+    if (res.ok) {
+      btn.classList.toggle('active', res.wishlisted);
+      API.toast(res.wishlisted ? 'Saved to wishlist' : 'Removed from wishlist');
+    }
+  }
+
+  // Init from URL params
+  const urlParams = new URLSearchParams(location.search);
+  if (urlParams.get('cat')) {
+    const catBtn = document.querySelector(`#cat-nav [data-cat="${urlParams.get('cat')}"]`);
+    if (catBtn) selectCat(catBtn);
+  }
+  if (urlParams.get('q')) {
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.value = urlParams.get('q');
+  }
+
+  applyFilters();
+</script>
+</body>
+</html>
