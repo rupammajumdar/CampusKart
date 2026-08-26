@@ -11,8 +11,10 @@ const {
 
 const TOKEN_EXPIRY_MS = (process.env.EMAIL_TOKEN_EXPIRES_MINUTES || 30) * 60 * 1000;
 
+const JWT_SECRET = process.env.JWT_SECRET || 'campuskart_super_secret_jwt_key_change_in_production';
+
 function generateJWT(userId) {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+  return jwt.sign({ userId }, JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
 }

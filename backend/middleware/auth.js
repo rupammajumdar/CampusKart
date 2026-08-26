@@ -5,6 +5,8 @@ const User = require('../models/User');
  * Middleware: verifies JWT and attaches user to req.user.
  * Pass { optional: true } as second arg for routes where auth is optional.
  */
+const JWT_SECRET = process.env.JWT_SECRET || 'campuskart_super_secret_jwt_key_change_in_production';
+
 function authMiddleware(options = {}) {
   return async (req, res, next) => {
     const header = req.headers.authorization;
@@ -15,7 +17,7 @@ function authMiddleware(options = {}) {
 
     const token = header.slice(7);
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, JWT_SECRET);
       const user = await User.findById(decoded.userId).select('-passwordHash');
       if (!user) {
         if (options.optional) return next();

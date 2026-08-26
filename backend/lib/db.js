@@ -70,11 +70,7 @@ async function seedDemoAccounts() {
 async function connectDB() {
   if (isConnected) return;
 
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    console.error('❌ MONGODB_URI is not defined in backend/.env');
-    return;
-  }
+  const uri = process.env.MONGODB_URI || 'mongodb+srv://utpalmajumdar6_db_user:rQTbZeNjpOAptfO0@cluster0.zee69ax.mongodb.net/campuskart';
 
   try {
     await mongoose.connect(uri, {

@@ -32,12 +32,10 @@ app.use(cors({
 
 // Auto DB connection middleware for serverless / requests
 app.use(async (req, res, next) => {
-  if (req.path.startsWith('/api')) {
-    try {
-      await connectDB();
-    } catch (e) {
-      console.error('DB Connection Error:', e);
-    }
+  try {
+    await connectDB();
+  } catch (e) {
+    console.error('DB Connection Error:', e);
   }
   next();
 });
