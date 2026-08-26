@@ -216,7 +216,7 @@
 
           <div style="margin-bottom:24px;">
             <label class="form-label">Hostel / Address</label>
-            <input class="input-field" type="text" id="prof-hostel" placeholder="e.g. Hostel H-1, Room 204"/>
+      <input class="input-field" type="text" id="prof-hostel" placeholder="e.g. Hostel H-1, Room 204"/>
           </div>
 
           <button class="btn btn-primary" type="submit" style="width:100%;">Save Profile Changes</button>
@@ -226,129 +226,30 @@
 
     <!-- Active Listings -->
     <div class="tab-panel active" id="tab-active">
-      <!-- Listing 1: with interested buyers -->
-      <div class="mgmt-card" id="card-1">
-        <div class="mgmt-card__header">
-          <img class="mgmt-card__img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGzwmZSuL3Jv61pST8-qKsthNu5ClG5RB88whXmfVwh70w6P9UvK16ywA7peOArLkHJ76JvPc6P907ZYxKcS3pD7pAboLagM0LJ-REB8HhQ75o-kYC3gwNld114es61MoIocwUJ0cOtg6g2AAetvngXUpl3tVyX3-T0yCCdbKdjSfLUicXUYH7t0IJPbJHKldPiTtsnc1rKZ8JEKAr25_Vn46IWzl5HDXyg9EGB3e3Ces-jKkPMwN45Q" alt="Blazer"/>
-          <div class="mgmt-card__info">
-            <div class="mgmt-card__title">Formal Blazer – Navy Blue (Size 40)</div>
-            <div class="mgmt-card__meta">₹250/week · Formal Wear · <span class="status-badge status-live" style="padding:2px 8px;font-size:10px;">Live</span></div>
-            <div style="margin-top:6px; display:flex; gap:12px; font-size:12px; color:var(--on-surface-variant);">
-              <span>👁 42 views</span>
-              <span>💬 3 interested</span>
-              <span>📅 Listed Aug 22</span>
-            </div>
-          </div>
-          <div class="mgmt-card__actions">
-            <button class="btn btn-sm btn-surface" onclick="toggleExpand('card-1')">
-              <span class="material-symbols-outlined" style="font-size:16px;">expand_more</span> Buyers
-            </button>
-          </div>
-        </div>
-        <div class="quick-actions">
-          <a href="list-item.html" class="btn btn-sm btn-surface"><span class="material-symbols-outlined" style="font-size:15px;">edit</span> Edit</a>
-          <button class="btn btn-sm btn-surface" onclick="showToast('Listing paused')"><span class="material-symbols-outlined" style="font-size:15px;">pause</span> Pause</button>
-          <button class="btn btn-sm btn-surface" onclick="showToast('Listing removed')"><span class="material-symbols-outlined" style="font-size:15px;">delete</span> Delist</button>
-          <button class="btn btn-sm btn-primary" onclick="showToast('Item marked as sold!')"><span class="material-symbols-outlined" style="font-size:15px;">check_circle</span> Mark Sold</button>
-        </div>
-        <div class="mgmt-card__body">
-          <p style="font-size:12px; font-weight:600; color:var(--on-surface-variant); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px;">Interested Buyers (3)</p>
-          <div class="buyers-list">
-            <div class="buyer-row">
-              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUSnRypnEvmAik4rj2pzRIjdxrDBUTz0qKZmEI3Eg0Q2GoDSZtt_CByoclIkOHNa5ow5Cu88Vu-TBZ5CAXQK-WRdo_aGKWQ6Y78fIBHcm1P8_K6UQl1Ds7S1uzR4TTHVRdRGBdTyzHLLHhSK8rracs_FlWaZcaB8brB2TNFo6OrntRovYdXnF1BcIyB0zRTfJslG74CIAWYZtDRd8rg1gS2aedmdCWkoIM0YMQxpqEc0ziDxZEKZ6-SQ" alt="Rohit"/>
-              <div>
-                <div class="buyer-row__name">Rohit Sharma · ECE 4th Yr</div>
-                <div class="buyer-row__msg">"Can I get it for next week's interview?"</div>
-              </div>
-              <a href="messages.html" class="btn btn-sm btn-primary">Chat</a>
-              <button class="btn btn-sm btn-surface" onclick="showToast('Item reserved for Rohit! Others notified.')">Reserve</button>
-            </div>
-            <div class="buyer-row">
-              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuByadx3Fzt2LD0-TP3qFi5V2w3E7fyYaFs_8G6EitXcLOgqvLUUBdxSK33t7ycNRqTMykN71LBbU62-XXcFzfGIj_6vRfH6-bVjy-Wg-MFp5wL2iudUcDXvrQRQICRW-SN9DUH2uJEmUYcgSY5gZFv8YsObCjTZVJqNkzkW1hYxKd1bs6dGJ0WO5YtrkRVdXFYYLY4pbrZvkbHqurBiT5kOEYTpl9CIEtxpgKmu8B6Oy0wTTE5hxsImYg" alt="Priya"/>
-              <div>
-                <div class="buyer-row__name">Priya Mehta · CSE 3rd Yr</div>
-                <div class="buyer-row__msg">"Is it available for 2 weeks?"</div>
-              </div>
-              <a href="messages.html" class="btn btn-sm btn-primary">Chat</a>
-              <button class="btn btn-sm btn-surface" onclick="showToast('Item reserved for Priya!')">Reserve</button>
-            </div>
-            <div class="buyer-row">
-              <div class="thread-avatar-initials" style="width:36px;height:36px;">AS</div>
-              <div>
-                <div class="buyer-row__name">Ankit Singh · ME 2nd Yr</div>
-                <div class="buyer-row__msg">"How is the condition exactly?"</div>
-              </div>
-              <a href="messages.html" class="btn btn-sm btn-primary">Chat</a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Listing 2 -->
-      <div class="mgmt-card">
-        <div class="mgmt-card__header">
-          <img class="mgmt-card__img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWGyXM56nVVWhBsdpX_tcih5Wq0OPD0aPot_JtVwdgrRKH-_LVo3PIobe0dnf6Pz2kcmnkU2I9v1uM7glJDjz0Zbw28CE610r_gVUxBLfuknwopGiqREzPk1xU6u8IIQkpcdHkval8ghyyFkcFp75h4ryXg1ZYM23ct140gk74kF_hdCYvSytXPYIo1FJGVMzOhB_pxrXBZTxNThDP9ZBAxMmt06q6HT2jqcMdkYuJCfCB_Mb7H6irKw" alt="Lab Coat"/>
-          <div class="mgmt-card__info">
-            <div class="mgmt-card__title">Lab Coat – Size M (Like New)</div>
-            <div class="mgmt-card__meta">₹80/semester · Lab Equipment · <span class="status-badge status-reserved" style="padding:2px 8px;font-size:10px;">Reserved</span></div>
-            <div style="margin-top:6px; font-size:12px; color:var(--on-surface-variant);">Reserved for: <strong>Ananya Sahu</strong> · Due back: Nov 30, 2026</div>
-          </div>
-          <div class="mgmt-card__actions">
-            <button class="btn btn-sm btn-surface" onclick="showToast('Transaction marked complete!')">Mark Complete</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Listing 3 -->
-      <div class="mgmt-card">
-        <div class="mgmt-card__header">
-          <img class="mgmt-card__img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwDXCROZ7hhvyp_hdIaFiFzcAPWGGOmBi-Ec3_CLf_sDuDj9W9GPC0bi7ymSAJui1Qc6CcAzfIEDgYrtDqZnmgqVstpYIEqsqAE_HUWkr_4dBbXHJlxCVgsGOp5Ng1fOj2rhiIqf-C6dONNwgn2xN5UfHUILFQ3X9-jvMNB7vkSFxNavEeq9qXre5Y4YhLzPFxE4VY8SPfzLoKl4qIE2K5sulbNGQXyRGPU1mxhgiTWwlwe0nMd9B9VA" alt="Book"/>
-          <div class="mgmt-card__info">
-            <div class="mgmt-card__title">Digital Electronics – Morris Mano (ECE)</div>
-            <div class="mgmt-card__meta">₹180 · Books · <span class="status-badge status-live" style="padding:2px 8px;font-size:10px;">Live</span></div>
-            <div style="margin-top:6px; font-size:12px; color:var(--on-surface-variant);">👁 18 views · 💬 1 interested</div>
-          </div>
-          <div class="mgmt-card__actions">
-            <a href="list-item.html" class="btn btn-sm btn-surface">Edit</a>
-          </div>
-        </div>
+      <div style="text-align:center; padding:48px 24px; background:var(--surface-container-lowest); border-radius:16px; border:1px solid var(--outline-variant);">
+        <span class="material-symbols-outlined" style="font-size:48px; color:var(--primary); margin-bottom:12px;">inventory_2</span>
+        <h3 style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; color:var(--on-surface);">No Active Listings</h3>
+        <p style="font-size:13px; color:var(--on-surface-variant); margin-bottom:16px;">Post items for sale or rent to start earning on campus.</p>
+        <a href="list-item.html" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:6px;"><span class="material-symbols-outlined">add_circle</span> List New Item</a>
       </div>
     </div>
 
     <!-- Pending Review -->
     <div class="tab-panel" id="tab-pending">
-      <div style="background:rgba(141,74,0,0.06); border:1px solid rgba(141,74,0,0.2); border-radius:var(--radius-md); padding:12px 16px; margin-bottom:20px; display:flex; gap:10px;">
-        <span class="material-symbols-outlined" style="color:var(--tertiary); flex-shrink:0;">schedule</span>
-        <p style="font-size:13px; color:var(--tertiary);">These listings are awaiting admin review. Expected turnaround: <strong>within 24 hours</strong>.</p>
-      </div>
-      <div class="mgmt-card">
-        <div class="mgmt-card__header">
-          <img class="mgmt-card__img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJzSFJNWilfE_AdVoiqOEZd5_PHIq4Qat13CBIIvS6jXCrqvyx89WWFI5fF3P--QPdOgcMWHCjpLi2d48yNJg0eeme7MgfLIAtmWimVgIAPyX4OxFBPh5SZWRlZTFJnhKazpMfafkLjR_Gmj_TSaJMtHpD9rr85Nr5UDcdJXYmpk3JqdxFuSxIy5hLa2wWof2KRA63et3dDofbNyjwtfAQyDExLcXu8zqJ0vOotf91R3g-t_lNLUqlgA" alt="Shoes"/>
-          <div class="mgmt-card__info">
-            <div class="mgmt-card__title">Oxford Formal Shoes – Size 9 (Black)</div>
-            <div class="mgmt-card__meta">₹650 · Shoes · <span class="status-badge status-pending" style="padding:2px 8px;font-size:10px;">Pending Review</span></div>
-            <div style="margin-top:6px; font-size:12px; color:var(--on-surface-variant);">Submitted: Aug 26, 2026 · 3:45 PM</div>
-          </div>
-        </div>
-      </div>
-      <div class="mgmt-card">
-        <div class="mgmt-card__header">
-          <img class="mgmt-card__img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvIR4_gThove8EP5bNnw26sRi4i98YCVP9UN35mjN7T4AXnCojSOwGinJR4_mBkMYLM_58vwJwYUT6bvfjxTCciINpippXm8qmdu8lZYhYgoIrs0jE8IIg8jpTmmVWSlKyLtULiY1SuFh51nq9zs-l2RIaYGGGW9gRNWUIwFh7EIGgblSJ_UWVp-VKZKDHOzUMmjqM1uHmYUgs-FejTnxT0nKsVp-sKTeBIDXKWm1hbTWt-SGkohK5tQ" alt="Calculus"/>
-          <div class="mgmt-card__info">
-            <div class="mgmt-card__title">Calculus: Early Transcendentals 8th Edition</div>
-            <div class="mgmt-card__meta">₹120/semester · Books · <span class="status-badge status-pending" style="padding:2px 8px;font-size:10px;">Pending Review</span></div>
-          </div>
-        </div>
+      <div style="text-align:center; padding:48px 24px; background:var(--surface-container-lowest); border-radius:16px; border:1px solid var(--outline-variant);">
+        <span class="material-symbols-outlined" style="font-size:48px; color:var(--tertiary); margin-bottom:12px;">schedule</span>
+        <h3 style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; color:var(--on-surface);">No Listings Pending Review</h3>
+        <p style="font-size:13px; color:var(--on-surface-variant);">All your submitted items have been reviewed by admins.</p>
       </div>
     </div>
 
     <!-- Completed -->
     <div class="tab-panel" id="tab-completed">
-      <div style="text-align:center; padding:48px 24px;">
-        <div style="font-size:56px; margin-bottom:12px;">🎉</div>
-        <h3 style="font-family:'Sora',sans-serif; font-size:20px; font-weight:700; margin-bottom:6px;">23 items sold or rented!</h3>
-        <p style="font-size:14px; color:var(--on-surface-variant); margin-bottom:24px;">Keep listing to help more campus students and earn more.</p>
-        <a href="list-item.html" class="btn btn-primary btn-pill">+ List Another Item</a>
+      <div style="text-align:center; padding:48px 24px; background:var(--surface-container-lowest); border-radius:16px; border:1px solid var(--outline-variant);">
+        <span class="material-symbols-outlined" style="font-size:48px; color:var(--secondary); margin-bottom:12px;">check_circle</span>
+        <h3 style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; color:var(--on-surface);">No Completed Sales Yet</h3>
+        <p style="font-size:13px; color:var(--on-surface-variant); margin-bottom:16px;">Completed sales and returned rentals will appear here.</p>
+        <a href="list-item.html" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:6px;"><span class="material-symbols-outlined">add_circle</span> List an Item</a>
       </div>
     </div>
   </div>
@@ -358,7 +259,11 @@
 <footer class="footer">
   <div class="container footer__grid">
     <div><a href="home.html" class="footer__brand">CampusKart</a><p class="footer__copy">© 2026 CampusKart. NIT Raipur.</p></div>
-    <div class="footer__links"><a href="#" class="footer__link">Safety Guide</a><a href="#" class="footer__link">Support</a></div>
+    <div class="footer__links">
+      <a href="home.html" class="footer__link">Home</a>
+      <a href="browse.html" class="footer__link">Browse</a>
+      <a href="list-item.html" class="footer__link">List Item</a>
+    </div>
   </div>
 </footer>
 
@@ -368,86 +273,46 @@
   <a href="browse.html" class="mobile-nav__item"><span class="material-symbols-outlined">explore</span><span>Browse</span></a>
   <a href="list-item.html" class="mobile-nav__item"><span class="material-symbols-outlined">add_circle</span><span>List</span></a>
   <a href="messages.html" class="mobile-nav__item"><span class="material-symbols-outlined">chat</span><span>Messages</span></a>
-  <a href="my-activity.html" class="mobile-nav__item active"><span class="material-symbols-outlined icon-fill">person</span><span>Me</span></a>
+  <a href="lister-dashboard.html" class="mobile-nav__item active"><span class="material-symbols-outlined icon-fill">storefront</span><span>Dashboard</span></a>
 </nav>
 
 <div id="toast-container"></div>
 
 <script>
-if (!API.requireAuth('index.html')) {
-  // Redirecting
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+  const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.textContent.toLowerCase().includes(tab));
+  if (btn) btn.classList.add('active');
+
+  const panel = document.getElementById('tab-' + tab);
+  if (panel) panel.classList.add('active');
 }
 
-function switchDashTab(id) {
-  const ids = ['active','pending','completed','profile'];
-  document.querySelectorAll('.tabs .tab-btn').forEach((b,i) => b.classList.toggle('active', ids[i]===id));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  const target = document.getElementById(`tab-${id}`);
-  if (target) target.classList.add('active');
+function showToast(msg) {
+  API.toast(msg, 'info');
 }
 
 function toggleExpand(id) {
   const el = document.getElementById(id);
-  if (el) el.classList.toggle('expanded');
-}
-
-function previewProfilePhoto(event) {
-  const file = event.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      document.getElementById('profile-preview-img').src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-}
-
-async function saveProfile(event) {
-  event.preventDefault();
-  const fileInput = document.getElementById('profile-photo-input');
-  let res;
-
-  if (fileInput && fileInput.files && fileInput.files[0]) {
-    const formData = new FormData();
-    formData.append('firstName', document.getElementById('prof-fname').value);
-    formData.append('lastName', document.getElementById('prof-lname').value);
-    formData.append('branch', document.getElementById('prof-branch').value);
-    formData.append('year', document.getElementById('prof-year').value);
-    formData.append('hostel', document.getElementById('prof-hostel').value);
-    formData.append('profilePhoto', fileInput.files[0]);
-    res = await API.users.updateProfile(formData, true);
-  } else {
-    const payload = {
-      firstName: document.getElementById('prof-fname').value,
-      lastName: document.getElementById('prof-lname').value,
-      branch: document.getElementById('prof-branch').value,
-      year: document.getElementById('prof-year').value,
-      hostel: document.getElementById('prof-hostel').value
-    };
-    res = await API.users.updateProfile(payload, false);
-  }
-
-  if (res.ok && res.user) {
-    API.setUser(res.user);
-    API.toast('Profile updated successfully!', 'success');
-    document.querySelectorAll('.topnav__avatar').forEach(img => {
-      img.src = API.userAvatar(res.user);
-    });
-  } else {
-    API.toast(res.error || 'Failed to update profile', 'error');
-  }
+  if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
 }
 
 function populateProfileData() {
   const user = API.getUser();
   if (!user) return;
+
   document.getElementById('prof-fname').value = user.firstName || '';
   document.getElementById('prof-lname').value = user.lastName || '';
   document.getElementById('prof-email').value = user.email || '';
   if (user.branch) document.getElementById('prof-branch').value = user.branch;
   if (user.year) document.getElementById('prof-year').value = user.year;
   document.getElementById('prof-hostel').value = user.hostel || '';
-  document.getElementById('profile-preview-img').src = API.userAvatar(user);
+
+  if (document.getElementById('profile-preview-img')) {
+    document.getElementById('profile-preview-img').src = API.userAvatar(user);
+  }
   document.querySelectorAll('.topnav__avatar').forEach(img => {
     img.src = API.userAvatar(user);
   });
@@ -462,40 +327,83 @@ async function loadListerDashboard() {
 
     // Update active tab grid
     const activePanel = document.getElementById('tab-active');
-    if (activePanel && active.length > 0) {
-      activePanel.innerHTML = active.map(item => `
-        <div class="mgmt-card">
-          <div class="mgmt-card__header">
-            <img class="mgmt-card__img" src="${API.listingPhoto(item)}" alt="${item.title}"/>
-            <div class="mgmt-card__info">
-              <div class="mgmt-card__title">${item.title}</div>
-              <div class="mgmt-card__meta">${API.formatPrice(item)} · ${item.category} · <span class="status-badge status-${item.status}">${item.status.toUpperCase()}</span></div>
-            </div>
-            <button class="btn btn-outline btn-sm" onclick="toggleExpand('buyers-${item._id}')">Interested Buyers</button>
-          </div>
-          <div class="mgmt-card__expand" id="buyers-${item._id}">
-            <div style="padding:12px 16px; border-top:1px solid var(--outline-variant);">
-              <a href="item.html?id=${item._id}" style="color:var(--primary); font-size:13px;">View Listing Detail →</a>
+    if (activePanel) {
+      if (active.length > 0) {
+        activePanel.innerHTML = active.map(item => `
+          <div class="mgmt-card">
+            <div class="mgmt-card__header">
+              <img class="mgmt-card__img" src="${API.listingPhoto(item)}" alt="${item.title}"/>
+              <div class="mgmt-card__info">
+                <div class="mgmt-card__title">${item.title}</div>
+                <div class="mgmt-card__meta">${API.formatPrice(item)} · ${item.category} · <span class="status-badge status-${item.status}">${item.status.toUpperCase()}</span></div>
+              </div>
+              <a href="item.html?id=${item._id}" class="btn btn-outline btn-sm">View Item</a>
             </div>
           </div>
-        </div>
-      `).join('');
+        `).join('');
+      } else {
+        activePanel.innerHTML = `
+          <div style="text-align:center; padding:48px 24px; background:var(--surface-container-lowest); border-radius:16px; border:1px solid var(--outline-variant);">
+            <span class="material-symbols-outlined" style="font-size:48px; color:var(--primary); margin-bottom:12px;">inventory_2</span>
+            <h3 style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; color:var(--on-surface);">No Active Listings</h3>
+            <p style="font-size:13px; color:var(--on-surface-variant); margin-bottom:16px;">Post items for sale or rent to start earning on campus.</p>
+            <a href="list-item.html" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:6px;"><span class="material-symbols-outlined">add_circle</span> List New Item</a>
+          </div>
+        `;
+      }
     }
 
     // Update pending tab grid
     const pendingPanel = document.getElementById('tab-pending');
-    if (pendingPanel && pending.length > 0) {
-      pendingPanel.innerHTML = pending.map(item => `
-        <div class="mgmt-card">
-          <div class="mgmt-card__header">
-            <img class="mgmt-card__img" src="${API.listingPhoto(item)}" alt="${item.title}"/>
-            <div class="mgmt-card__info">
-              <div class="mgmt-card__title">${item.title}</div>
-              <div class="mgmt-card__meta">${API.formatPrice(item)} · ${item.category} · <span class="status-badge status-pending">PENDING REVIEW</span></div>
+    if (pendingPanel) {
+      if (pending.length > 0) {
+        pendingPanel.innerHTML = pending.map(item => `
+          <div class="mgmt-card">
+            <div class="mgmt-card__header">
+              <img class="mgmt-card__img" src="${API.listingPhoto(item)}" alt="${item.title}"/>
+              <div class="mgmt-card__info">
+                <div class="mgmt-card__title">${item.title}</div>
+                <div class="mgmt-card__meta">${API.formatPrice(item)} · ${item.category} · <span class="status-badge status-pending">PENDING REVIEW</span></div>
+              </div>
             </div>
           </div>
-        </div>
-      `).join('');
+        `).join('');
+      } else {
+        pendingPanel.innerHTML = `
+          <div style="text-align:center; padding:48px 24px; background:var(--surface-container-lowest); border-radius:16px; border:1px solid var(--outline-variant);">
+            <span class="material-symbols-outlined" style="font-size:48px; color:var(--tertiary); margin-bottom:12px;">schedule</span>
+            <h3 style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; color:var(--on-surface);">No Listings Pending Review</h3>
+            <p style="font-size:13px; color:var(--on-surface-variant);">All your submitted items have been reviewed by admins.</p>
+          </div>
+        `;
+      }
+    }
+
+    // Update completed tab grid
+    const completedPanel = document.getElementById('tab-completed');
+    if (completedPanel) {
+      if (completed.length > 0) {
+        completedPanel.innerHTML = completed.map(item => `
+          <div class="mgmt-card">
+            <div class="mgmt-card__header">
+              <img class="mgmt-card__img" src="${API.listingPhoto(item)}" alt="${item.title}"/>
+              <div class="mgmt-card__info">
+                <div class="mgmt-card__title">${item.title}</div>
+                <div class="mgmt-card__meta">${API.formatPrice(item)} · ${item.category} · <span class="status-badge status-completed">COMPLETED</span></div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        completedPanel.innerHTML = `
+          <div style="text-align:center; padding:48px 24px; background:var(--surface-container-lowest); border-radius:16px; border:1px solid var(--outline-variant);">
+            <span class="material-symbols-outlined" style="font-size:48px; color:var(--secondary); margin-bottom:12px;">check_circle</span>
+            <h3 style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; color:var(--on-surface);">No Completed Sales Yet</h3>
+            <p style="font-size:13px; color:var(--on-surface-variant); margin-bottom:16px;">Completed sales and returned rentals will appear here.</p>
+            <a href="list-item.html" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:6px;"><span class="material-symbols-outlined">add_circle</span> List an Item</a>
+          </div>
+        `;
+      }
     }
   }
 }

@@ -1,18 +1,47 @@
+const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 
-const apiKey = process.env.RESEND_API_KEY || 're_dummy_resend_api_key_placeholder';
-let resend;
-try {
-  resend = new Resend(apiKey);
-} catch (e) {
-  console.warn('Resend initialization warning:', e.message);
-  resend = {
-    emails: {
-      send: async () => ({ data: { id: 'mock_sent' } }),
-    },
-  };
+// ── Transporters Setup ────────────────────────────────────────────────────────
+let resendTransporter = null;
+if (process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.includes('placeholder') && !process.env.RESEND_API_KEY.includes('dummy')) {
+  try {
+    resendTransporter = new Resend(process.env.RESEND_API_KEY);
+  } catch (e) {
+    console.warn('Resend init warning:', e.message);
+  }
 }
-const FROM = process.env.RESEND_FROM || 'CampusKart <onboarding@resend.dev>';
+
+let smtpTransporter = null;
+if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  try {
+    smtpTransporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: Number(process.env.SMTP_PORT) === 465,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+  } catch (e) {
+    console.warn('SMTP init warning:', e.message);
+  }
+} else if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+  try {
+    smtpTransporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+  } catch (e) {
+    console.warn('Gmail init warning:', e.message);
+  }
+}
+
+const FROM = process.env.FROM_EMAIL || process.env.RESEND_FROM || 'CampusKart <onboarding@resend.dev>';
+
 function getAppUrl() {
   if (process.env.APP_URL && !process.env.APP_URL.includes('localhost')) {
     return process.env.APP_URL.replace(/\/$/, '');
@@ -30,17 +59,45 @@ const APP_URL = getAppUrl();
 
 // ─── Shared email wrapper ────────────────────────────────────────────────────
 async function sendEmail({ to, subject, html }) {
-  try {
-    const { data, error } = await resend.emails.send({ from: FROM, to, subject, html });
-    if (error) {
-      console.error('Resend error:', error);
-      return { ok: false, error };
+  // 1. Try SMTP (Gmail or custom SMTP server) first if configured
+  if (smtpTransporter) {
+    try {
+      const info = await smtpTransporter.sendMail({
+        from: FROM,
+        to,
+        subject,
+        html,
+      });
+      console.log(`✅ Email sent via SMTP to ${to}: ${info.messageId}`);
+      return { ok: true, id: info.messageId };
+    } catch (err) {
+      console.error(`⚠️ SMTP send failed to ${to}:`, err.message);
     }
-    return { ok: true, id: data ? data.id : 'sent' };
-  } catch (err) {
-    console.error('Email send exception:', err.message);
-    return { ok: false, error: err.message };
   }
+
+  // 2. Try Resend if configured
+  if (resendTransporter) {
+    try {
+      const { data, error } = await resendTransporter.emails.send({
+        from: FROM,
+        to,
+        subject,
+        html,
+      });
+      if (error) {
+        console.error('⚠️ Resend error:', error.message || error);
+        return { ok: false, error: error.message || error };
+      }
+      console.log(`✅ Email sent via Resend to ${to}: ${data?.id}`);
+      return { ok: true, id: data ? data.id : 'sent' };
+    } catch (err) {
+      console.error(`⚠️ Resend send exception to ${to}:`, err.message);
+      return { ok: false, error: err.message };
+    }
+  }
+
+  console.log(`ℹ️ No active email transporter configured. Verification link logged in console for ${to}.`);
+  return { ok: false, error: 'No active email transporter configured' };
 }
 
 // ─── Email templates ─────────────────────────────────────────────────────────

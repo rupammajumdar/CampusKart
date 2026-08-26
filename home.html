@@ -481,6 +481,15 @@
           </div>
         </a>
       `).join('');
+    } else {
+      grid.innerHTML = `
+        <div style="grid-column:1/-1; text-align:center; padding:48px 24px; background:var(--surface-container-lowest); border-radius:16px; border:1px solid var(--outline-variant);">
+          <span class="material-symbols-outlined" style="font-size:48px; color:var(--primary); margin-bottom:12px;">storefront</span>
+          <h3 style="font-family:'Sora',sans-serif; font-size:18px; font-weight:700; margin-bottom:6px; color:var(--on-surface);">No Active Campus Listings Yet</h3>
+          <p style="color:var(--on-surface-variant); font-size:13px; margin-bottom:16px;">Be the first student to list a book, lab coat, or essential on CampusKart!</p>
+          <a href="list-item.html" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:6px;"><span class="material-symbols-outlined">add_circle</span> List an Item Now</a>
+        </div>
+      `;
     }
   }
 
