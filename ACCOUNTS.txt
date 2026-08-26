@@ -2,8 +2,11 @@
                  CAMPUSKART — DEMO & TEST ACCOUNTS
 ====================================================================
 
-Application Server URL: http://localhost:5000/index.html
-Health Check URL:        http://localhost:5000/api/health
+GitHub Repository:  https://github.com/rupammajumdar/CampusKart
+Vercel Project:     https://vercel.com/rupammajumdars-projects/campus-kart
+
+Local Server URL:   http://localhost:5000/index.html
+Local Health Check: http://localhost:5000/api/health
 
 --------------------------------------------------------------------
 1. ADMIN ACCOUNT
