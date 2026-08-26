@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const User = require('../models/User');
 const {
@@ -114,11 +115,12 @@ router.post('/login', async (req, res) => {
     // On-demand creation of demo accounts if missing in database
     if (!user) {
       if (cleanEmail === 'admin@campuskart.com' && password === 'admin123456') {
+        const hash = await bcrypt.hash('admin123456', 10);
         user = await User.create({
           firstName: 'Admin',
           lastName: 'Coordinator',
           email: 'admin@campuskart.com',
-          password: 'admin123456',
+          passwordHash: hash,
           branch: 'CSE',
           year: '4th Year',
           role: 'admin',
@@ -126,11 +128,12 @@ router.post('/login', async (req, res) => {
           isLister: true,
         });
       } else if (cleanEmail === 'student@gmail.com' && password === 'student123456') {
+        const hash = await bcrypt.hash('student123456', 10);
         user = await User.create({
           firstName: 'Aman',
           lastName: 'Kumar',
           email: 'student@gmail.com',
-          password: 'student123456',
+          passwordHash: hash,
           branch: 'CSE',
           year: '3rd Year',
           role: 'student',
@@ -138,11 +141,12 @@ router.post('/login', async (req, res) => {
           isLister: true,
         });
       } else if (cleanEmail === 'student2@gmail.com' && password === 'student123456') {
+        const hash = await bcrypt.hash('student123456', 10);
         user = await User.create({
           firstName: 'Priya',
           lastName: 'Sharma',
           email: 'student2@gmail.com',
-          password: 'student123456',
+          passwordHash: hash,
           branch: 'ECE',
           year: '2nd Year',
           role: 'student',

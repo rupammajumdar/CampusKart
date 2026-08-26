@@ -13,17 +13,21 @@ if (process.platform === 'win32') {
 
 let isConnected = false;
 
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
 async function seedDemoAccounts() {
   try {
-    const adminExists = await User.findOne({ email: 'admin@campuskart.com' });
-    if (!adminExists) {
+    const adminHash = await bcrypt.hash('admin123456', 10);
+    const studentHash = await bcrypt.hash('student123456', 10);
+
+    const admin = await User.findOne({ email: 'admin@campuskart.com' });
+    if (!admin) {
       await User.create({
         firstName: 'Admin',
         lastName: 'Coordinator',
         email: 'admin@campuskart.com',
-        password: 'admin123456',
+        passwordHash: adminHash,
         branch: 'CSE',
         year: '4th Year',
         role: 'admin',
@@ -31,15 +35,19 @@ async function seedDemoAccounts() {
         isLister: true,
       });
       console.log('👑 Admin account auto-created: admin@campuskart.com');
+    } else if (!admin.passwordHash) {
+      admin.passwordHash = adminHash;
+      await admin.save();
+      console.log('👑 Admin password repaired');
     }
 
-    const student1Exists = await User.findOne({ email: 'student@gmail.com' });
-    if (!student1Exists) {
+    const s1 = await User.findOne({ email: 'student@gmail.com' });
+    if (!s1) {
       await User.create({
         firstName: 'Aman',
         lastName: 'Kumar',
         email: 'student@gmail.com',
-        password: 'student123456',
+        passwordHash: studentHash,
         branch: 'CSE',
         year: '3rd Year',
         role: 'student',
@@ -47,15 +55,18 @@ async function seedDemoAccounts() {
         isLister: true,
       });
       console.log('👤 Student #1 account auto-created: student@gmail.com');
+    } else if (!s1.passwordHash) {
+      s1.passwordHash = studentHash;
+      await s1.save();
     }
 
-    const student2Exists = await User.findOne({ email: 'student2@gmail.com' });
-    if (!student2Exists) {
+    const s2 = await User.findOne({ email: 'student2@gmail.com' });
+    if (!s2) {
       await User.create({
         firstName: 'Priya',
         lastName: 'Sharma',
         email: 'student2@gmail.com',
-        password: 'student123456',
+        passwordHash: studentHash,
         branch: 'ECE',
         year: '2nd Year',
         role: 'student',
@@ -63,6 +74,9 @@ async function seedDemoAccounts() {
         isLister: true,
       });
       console.log('👤 Student #2 account auto-created: student2@gmail.com');
+    } else if (!s2.passwordHash) {
+      s2.passwordHash = studentHash;
+      await s2.save();
     }
   } catch (err) {
     console.error('Demo account seeding error:', err.message);
