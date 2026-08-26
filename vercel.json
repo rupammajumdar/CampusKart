@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "outputDirectory": ".",
   "env": {
     "EMAIL_USER": "majumdarrupam82@gmail.com",
     "EMAIL_PASS": "wrtw hrkk hxtv qdhc"
@@ -16,7 +17,11 @@
       "dest": "api/index.js"
     },
     {
-      "src": "/(.*\\.(html|css|js|jpg|jpeg|png|gif|svg|ico|json|woff|woff2|ttf|eot))",
+      "src": "/(.*\\.(css|js|jpg|jpeg|png|gif|svg|ico|json|woff|woff2|ttf|eot|webp|mp4))",
+      "dest": "/$1"
+    },
+    {
+      "src": "/(.*)",
       "dest": "/$1"
     }
   ]
