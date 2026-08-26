@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Formal Blazer – Navy (Size 40) | CampusKart</title>
-  <meta name="description" content="Rent this nearly-new formal blazer for ₹250/week from a verified NIT Raipur student. Tap 'I'm Interested' to chat."/>
+  <title>Item | CampusKart</title>
+  <meta name="description" content="View item details on CampusKart — NIT Raipur student marketplace."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Sora:wght@700;800&display=swap" rel="stylesheet"/>
@@ -130,9 +130,9 @@
   <nav class="breadcrumb" aria-label="breadcrumb">
     <a href="home.html">Home</a>
     <span class="material-symbols-outlined" style="font-size:16px;">chevron_right</span>
-    <a href="browse.html?cat=formal">Formal Wear</a>
+    <a href="browse.html" id="bc-browse">Browse</a>
     <span class="material-symbols-outlined" style="font-size:16px;">chevron_right</span>
-    <span>Formal Blazer – Navy (Size 40)</span>
+    <span id="bc-title">Loading…</span>
   </nav>
 </div>
 
@@ -141,22 +141,10 @@
   <!-- Gallery -->
   <div class="gallery-col">
     <div class="main-image" id="main-image-wrap">
-      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGzwmZSuL3Jv61pST8-qKsthNu5ClG5RB88whXmfVwh70w6P9UvK16ywA7peOArLkHJ76JvPc6P907ZYxKcS3pD7pAboLagM0LJ-REB8HhQ75o-kYC3gwNld114es61MoIocwUJ0cOtg6g2AAetvngXUpl3tVyX3-T0yCCdbKdjSfLUicXUYH7t0IJPbJHKldPiTtsnc1rKZ8JEKAr25_Vn46IWzl5HDXyg9EGB3e3Ces-jKkPMwN45Q" alt="Formal Blazer" id="main-img"/>
-      <div class="main-image__badges">
-        <span class="badge badge-rent" style="backdrop-filter:blur(4px); background:rgba(0,106,98,0.12); color:var(--secondary); border:1px solid rgba(0,106,98,0.2);">FOR RENT</span>
-        <span class="badge" style="background:rgba(255,255,255,0.85); color:var(--on-surface); backdrop-filter:blur(4px); border:1px solid rgba(198,196,216,0.3);">LIKE NEW</span>
-      </div>
+      <img src="" alt="Item photo" id="main-img" style="background:var(--surface-container);"/>
+      <div class="main-image__badges" id="item-badges"></div>
     </div>
-    <div class="thumbnails">
-      <div class="thumb active" onclick="setThumb(this,'https://lh3.googleusercontent.com/aida-public/AB6AXuAGzwmZSuL3Jv61pST8-qKsthNu5ClG5RB88whXmfVwh70w6P9UvK16ywA7peOArLkHJ76JvPc6P907ZYxKcS3pD7pAboLagM0LJ-REB8HhQ75o-kYC3gwNld114es61MoIocwUJ0cOtg6g2AAetvngXUpl3tVyX3-T0yCCdbKdjSfLUicXUYH7t0IJPbJHKldPiTtsnc1rKZ8JEKAr25_Vn46IWzl5HDXyg9EGB3e3Ces-jKkPMwN45Q')">
-        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGzwmZSuL3Jv61pST8-qKsthNu5ClG5RB88whXmfVwh70w6P9UvK16ywA7peOArLkHJ76JvPc6P907ZYxKcS3pD7pAboLagM0LJ-REB8HhQ75o-kYC3gwNld114es61MoIocwUJ0cOtg6g2AAetvngXUpl3tVyX3-T0yCCdbKdjSfLUicXUYH7t0IJPbJHKldPiTtsnc1rKZ8JEKAr25_Vn46IWzl5HDXyg9EGB3e3Ces-jKkPMwN45Q" alt="Thumb 1"/>
-      </div>
-      <div class="thumb" onclick="setThumb(this,'https://lh3.googleusercontent.com/aida-public/AB6AXuCvWPP0L81DVNSQ2dt--Pm6JIkBxVlYXfFwfuxtB5eJpEXQh0JpndHTRNBZlA5K7WuM1z3sZG6qYZxmys0_bup00Bt0LcV05V2XalEUB3IwOSB-2dKXmql0QQcCG0HyAdyWPOJMxXdEzJdoEgXAz74OgXcgMF31DQVQgTpDARkXILyFlnCXXv9uIoBdB2ERi82HxsipFydyaENpPshlmyj0tAE5MfuLNxAAjREuIxnaxq6qqJXtwu-9g')">
-        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvWPP0L81DVNSQ2dt--Pm6JIkBxVlYXfFwfuxtB5eJpEXQh0JpndHTRNBZlA5K7WuM1z3sZG6qYZxmys0_bup00Bt0LcV05V2XalEUB3IwOSB-2dKXmql0QQcCG0HyAdyWPOJMxXdEzJdoEgXAz74OgXcgMF31DQVQgTpDARkXILyFlnCXXv9uIoBdB2ERi82HxsipFydyaENpPshlmyj0tAE5MfuLNxAAjREuIxnaxq6qqJXtwu-9g" alt="Thumb 2"/>
-      </div>
-      <div class="thumb" onclick="setThumb(this,'https://lh3.googleusercontent.com/aida-public/AB6AXuDwDXCROZ7hhvyp_hdIaFiFzcAPWGGOmBi-Ec3_CLf_sDuDj9W9GPC0bi7ymSAJui1Qc6CcAzfIEDgYrtDqZnmgqVstpYIEqsqAE_HUWkr_4dBbXHJlxCVgsGOp5Ng1fOj2rhiIqf-C6dONNwgn2xN5UfHUILFQ3X9-jvMNB7vkSFxNavEeq9qXre5Y4YhLzPFxE4VY8SPfzLoKl4qIE2K5sulbNGQXyRGPU1mxhgiTWwlwe0nMd9B9VA')">
-        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwDXCROZ7hhvyp_hdIaFiFzcAPWGGOmBi-Ec3_CLf_sDuDj9W9GPC0bi7ymSAJui1Qc6CcAzfIEDgYrtDqZnmgqVstpYIEqsqAE_HUWkr_4dBbXHJlxCVgsGOp5Ng1fOj2rhiIqf-C6dONNwgn2xN5UfHUILFQ3X9-jvMNB7vkSFxNavEeq9qXre5Y4YhLzPFxE4VY8SPfzLoKl4qIE2K5sulbNGQXyRGPU1mxhgiTWwlwe0nMd9B9VA" alt="Thumb 3"/>
-      </div>
+    <div class="thumbnails" id="thumbs-container">
       <div class="thumb" style="background:var(--surface-container-high); display:flex; align-items:center; justify-content:center;">
         <span class="material-symbols-outlined" style="color:var(--outline);">add_photo_alternate</span>
       </div>
@@ -166,10 +154,10 @@
   <!-- Details -->
   <div class="details-col">
     <div>
-      <h1 class="item-title">Formal Blazer – Navy Blue (Size 40)</h1>
+      <h1 class="item-title" id="detail-title">Loading…</h1>
       <div class="item-price" style="margin-top:12px;">
-        <span class="price-big">₹250</span>
-        <span class="price-unit">/ week</span>
+        <span class="price-big" id="detail-price">—</span>
+        <span class="price-unit" id="detail-price-unit"></span>
       </div>
     </div>
 
@@ -177,54 +165,48 @@
 
     <div>
       <h3 style="font-weight:700; font-size:15px; margin-bottom:10px;">Description</h3>
-      <p style="font-size:14px; color:var(--on-surface-variant); line-height:1.7;">
-        Barely worn navy blue formal blazer. Purchased for placement season, worn to exactly two interviews. No stains, no damage — still has the original packaging bag. Ideal for placements, fests, or formal events.<br/><br/>
-        Willing to meet at Hostel 7 Common Room or Library Gate. First-come-first-served if multiple people interested.
+      <p style="font-size:14px; color:var(--on-surface-variant); line-height:1.7;" id="detail-description">
+        Loading description…
       </p>
-      <div class="tags-row" style="margin-top:14px;">
-        <span class="tag">Formal Wear</span>
-        <span class="tag">Size 40</span>
-        <span class="tag">Per Week Rental</span>
-        <span class="tag">Placement Season</span>
-      </div>
+      <div class="tags-row" style="margin-top:14px;" id="detail-tags"></div>
     </div>
 
-    <div class="info-grid">
+    <div class="info-grid" id="detail-info-grid">
       <div class="info-item">
         <div class="info-item__label">Condition</div>
-        <div class="info-item__value" style="color:var(--secondary);">Like New</div>
+        <div class="info-item__value" style="color:var(--secondary);" id="info-condition">—</div>
       </div>
       <div class="info-item">
         <div class="info-item__label">Type</div>
-        <div class="info-item__value">For Rent</div>
+        <div class="info-item__value" id="info-type">—</div>
       </div>
       <div class="info-item">
         <div class="info-item__label">Category</div>
-        <div class="info-item__value">Formal Wear</div>
+        <div class="info-item__value" id="info-category">—</div>
       </div>
       <div class="info-item">
         <div class="info-item__label">Rental Period</div>
-        <div class="info-item__value">Per Week</div>
+        <div class="info-item__value" id="info-rental">—</div>
       </div>
     </div>
 
     <!-- Lister card -->
-    <div class="user-card">
+    <div class="user-card" id="seller-card">
       <div class="user-card__avatar-wrap">
-        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0rXOGYAL598B-qEDpgQEiDpFILxsl75nGso8g_Dv-2o6vBxvQqTNCJvGMCM5nHT7qk2PAmgL_BobsXONL-pt8zeBJx8AXpfBC5i_L_CCr29cfdU4z_7czxE_qXlEsvwzLn8IoMyxNQ4knQ81aJqd905eADahrJ1hUJ55SjYH_UTy22JkxSsjejA8pwwTilgytOs6tbMLD8AD3YMV2KgVdmFEuGKvqw2csdLWou1_tWIw_abS4wpjKOw" alt="Rohit S." class="user-card__avatar"/>
+        <img src="" alt="Seller" class="user-card__avatar" id="seller-avatar"/>
         <div class="user-card__verified" title="Verified Student"><span class="material-symbols-outlined icon-fill" style="font-size:12px;">verified</span></div>
       </div>
       <div class="user-card__info">
-        <div class="user-card__name">Rohit Sharma</div>
-        <div class="user-card__sub">Mechanical Engineering · Final Year</div>
-        <div style="font-size:11px; color:var(--secondary); margin-top:3px; font-weight:500;">✓ Verified Student</div>
+        <div class="user-card__name" id="seller-name">—</div>
+        <div class="user-card__sub" id="seller-meta">—</div>
+        <div style="font-size:11px; color:var(--secondary); margin-top:3px; font-weight:500;" id="seller-verified"></div>
       </div>
       <div class="user-card__rating">
         <div class="rating-stars">
           <span class="material-symbols-outlined icon-fill" style="font-size:18px; color:var(--tertiary-container);">star</span>
-          4.8
+          <span id="seller-rating">—</span>
         </div>
-        <span style="font-size:11px; color:var(--on-surface-variant);">18 ratings</span>
+        <span style="font-size:11px; color:var(--on-surface-variant);" id="seller-rating-count"></span>
       </div>
     </div>
 
@@ -234,9 +216,9 @@
         <span class="material-symbols-outlined">thumb_up</span>
         I'm Interested
       </a>
-      <a href="messages.html" class="btn btn-outline">
+      <a href="messages.html" class="btn btn-outline" id="chat-btn">
         <span class="material-symbols-outlined">chat_bubble</span>
-        Chat with Rohit
+        Chat with Seller
       </a>
       <button class="btn btn-surface btn-sm" id="wishlist-btn" onclick="toggleWishlistPage(this)">
         <span class="material-symbols-outlined">favorite</span>
@@ -254,43 +236,8 @@
 <!-- Related listings -->
 <div style="max-width:1100px; margin:40px auto 80px; padding:0 var(--margin-mobile);">
   <h2 style="font-family:'Sora',sans-serif; font-size:22px; font-weight:700; margin-bottom:20px;">Similar Items</h2>
-  <div class="related-grid">
-    <a href="item.html" class="card listing-card">
-      <div class="listing-card__image">
-        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvWPP0L81DVNSQ2dt--Pm6JIkBxVlYXfFwfuxtB5eJpEXQh0JpndHTRNBZlA5K7WuM1z3sZG6qYZxmys0_bup00Bt0LcV05V2XalEUB3IwOSB-2dKXmql0QQcCG0HyAdyWPOJMxXdEzJdoEgXAz74OgXcgMF31DQVQgTpDARkXILyFlnCXXv9uIoBdB2ERi82HxsipFydyaENpPshlmyj0tAE5MfuLNxAAjREuIxnaxq6qqJXtwu-9g" alt="White Shirt"/>
-        <span class="listing-card__type-badge badge badge-buy">Buy</span>
-      </div>
-      <div class="listing-card__body">
-        <h3 class="listing-card__title">White Formal Shirt – Size M</h3>
-        <div class="listing-card__price">₹350</div>
-      </div>
-    </a>
-    <a href="item.html" class="card listing-card">
-      <div class="listing-card__image">
-        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJzSFJNWilfE_AdVoiqOEZd5_PHIq4Qat13CBIIvS6jXCrqvyx89WWFI5fF3P--QPdOgcMWHCjpLi2d48yNJg0eeme7MgfLIAtmWimVgIAPyX4OxFBPh5SZWRlZTFJnhKazpMfafkLjR_Gmj_TSaJMtHpD9rr85Nr5UDcdJXYmpk3JqdxFuSxIy5hLa2wWof2KRA63et3dDofbNyjwtfAQyDExLcXu8zqJ0vOotf91R3g-t_lNLUqlgA" alt="Oxford Shoes"/>
-        <span class="listing-card__type-badge badge badge-buy">Buy</span>
-      </div>
-      <div class="listing-card__body">
-        <h3 class="listing-card__title">Oxford Formal Shoes – Size 9</h3>
-        <div class="listing-card__price">₹650</div>
-      </div>
-    </a>
-    <a href="item.html" class="card listing-card">
-      <div class="listing-card__image">
-        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYJz_VxNah1kHvpUyUeovD9IlWHozxZyv1ZMl5Io71VcYgh6VlmrYHl7t9JX6Uf8TudbqLsQMGRidtSP6iXOF5FPjUd5kwbXo0ZwMOR56zOl6pUKiHZycXBsQ7QKCIZYUdt2OOkCTEJx-P2oqWXLT91NbB59Gb7EvdD4Rw66Ll9bt0_P65N9acbZqfMZqlatvTgIapH_fRdLHOvPTDQOk9u0vAghutyE5JfB_REp8Iax7lQCK93h4cQw" alt="Placement Tie"/>
-        <span class="listing-card__type-badge badge badge-buy">Buy</span>
-      </div>
-      <div class="listing-card__body">
-        <h3 class="listing-card__title">Placement Tie – Dark Blue</h3>
-        <div class="listing-card__price">₹120</div>
-      </div>
-    </a>
-    <a href="browse.html?cat=formal" class="card" style="display:flex; align-items:center; justify-content:center; padding:24px; text-align:center; background:var(--surface-container); border:2px dashed var(--outline-variant);">
-      <div>
-        <div style="font-size:32px; margin-bottom:8px;">👔</div>
-        <p style="font-weight:600; color:var(--primary); font-size:14px;">Browse all Formal Wear →</p>
-      </div>
-    </a>
+  <div class="related-grid" id="related-grid">
+    <div style="text-align:center; padding:24px; color:var(--on-surface-variant); grid-column:1/-1;">Loading similar items…</div>
   </div>
 </div>
 
@@ -345,13 +292,8 @@ async function handleInterest(e) {
   if (!currentListing) return;
 
   const sellerId = currentListing.seller._id || currentListing.seller;
-
-  // Navigate to messages immediately
   const msgUrl = `messages.html?listing=${currentListing._id}&user=${sellerId}`;
-
-  // Fire interest request in background (don't block navigation)
   API.listings.interest(currentListing._id).catch(() => {});
-
   window.location.href = msgUrl;
 }
 
@@ -402,55 +344,182 @@ async function submitReport() {
   }
 }
 
+function renderThumbnails(photos, mainPhoto) {
+  const container = document.getElementById('thumbs-container');
+  if (!container || !photos || photos.length === 0) return;
+
+  container.innerHTML = '';
+  photos.forEach((photo, i) => {
+    const src = API.listingPhoto({ photos: [photo] }, 0);
+    const div = document.createElement('div');
+    div.className = 'thumb' + (i === 0 ? ' active' : '');
+    div.onclick = () => setThumb(div, src);
+    div.innerHTML = `<img src="${src}" alt="Photo ${i + 1}"/>`;
+    container.appendChild(div);
+  });
+}
+
+function renderSellerCard(seller) {
+  if (!seller) return;
+  const name = `${seller.firstName} ${seller.lastName}`;
+  document.getElementById('seller-avatar').src = API.userAvatar(seller);
+  document.getElementById('seller-name').textContent = name;
+  document.getElementById('seller-meta').textContent = `${seller.branch || 'Campus Student'} · ${seller.year || 'Verified'}`;
+  document.getElementById('seller-verified').textContent = '✓ Verified Student';
+  document.getElementById('seller-rating').textContent = seller.rating || '—';
+  document.getElementById('seller-rating-count').textContent = seller.ratingCount ? `${seller.ratingCount} ratings` : 'No ratings yet';
+
+  const chatBtn = document.getElementById('chat-btn');
+  if (chatBtn) {
+    const sellerId = seller._id || currentListing.seller;
+    chatBtn.innerHTML = `<span class="material-symbols-outlined">chat_bubble</span> Chat with ${seller.firstName}`;
+    chatBtn.href = `messages.html?listing=${currentListing._id}&user=${sellerId}`;
+  }
+}
+
+function renderBadges(listing) {
+  const el = document.getElementById('item-badges');
+  if (!el) return;
+  const typeBadge = listing.listingType === 'rent'
+    ? `<span class="badge badge-rent" style="backdrop-filter:blur(4px); background:rgba(0,106,98,0.12); color:var(--secondary); border:1px solid rgba(0,106,98,0.2);">FOR RENT</span>`
+    : `<span class="badge badge-buy" style="backdrop-filter:blur(4px); background:rgba(108,71,255,0.12); color:var(--primary); border:1px solid rgba(108,71,255,0.2);">FOR SALE</span>`;
+  const condBadge = `<span class="badge" style="background:rgba(255,255,255,0.85); color:var(--on-surface); backdrop-filter:blur(4px); border:1px solid rgba(198,196,216,0.3);">${(listing.condition || 'Good').toUpperCase()}</span>`;
+  el.innerHTML = typeBadge + condBadge;
+}
+
+function renderInfoGrid(listing) {
+  document.getElementById('info-condition').textContent = listing.condition || '—';
+  document.getElementById('info-type').textContent = listing.listingType === 'rent' ? 'For Rent' : 'For Sale';
+  document.getElementById('info-category').textContent = listing.category || '—';
+  document.getElementById('info-rental').textContent = listing.rentalDuration || (listing.listingType === 'rent' ? '—' : 'N/A');
+  if (listing.listingType !== 'rent') {
+    const rentalItem = document.getElementById('info-rental')?.closest('.info-item');
+    if (rentalItem) rentalItem.style.display = 'none';
+  }
+}
+
+function renderTags(listing) {
+  const el = document.getElementById('detail-tags');
+  if (!el) return;
+  const tags = [];
+  if (listing.category) tags.push(listing.category);
+  if (listing.listingType === 'rent' && listing.rentalDuration) tags.push(listing.rentalDuration);
+  el.innerHTML = tags.map(t => `<span class="tag">${t}</span>`).join('');
+}
+
+async function loadSimilarItems(category, currentId) {
+  const grid = document.getElementById('related-grid');
+  if (!grid) return;
+
+  const res = await API.listings.browse({ category, limit: 4 });
+  if (!res.ok || !res.listings || res.listings.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:24px; color:var(--on-surface-variant);">No similar items found.</div>`;
+    return;
+  }
+
+  const filtered = res.listings.filter(item => item._id !== currentId).slice(0, 4);
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:24px; color:var(--on-surface-variant);">No similar items found.</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(item => `
+    <a href="item.html?id=${item._id}" class="card listing-card">
+      <div class="listing-card__image">
+        <img src="${API.listingPhoto(item)}" alt="${item.title}"/>
+        <span class="listing-card__type-badge badge badge-${item.listingType === 'rent' ? 'rent' : 'sell'}">${item.listingType === 'rent' ? 'Rent' : 'Buy'}</span>
+      </div>
+      <div class="listing-card__body">
+        <h3 class="listing-card__title">${item.title}</h3>
+        <div class="listing-card__price">${API.formatPrice(item)}</div>
+      </div>
+    </a>
+  `).join('') + `
+    <a href="browse.html" class="card" style="display:flex; align-items:center; justify-content:center; padding:24px; text-align:center; background:var(--surface-container); border:2px dashed var(--outline-variant);">
+      <div>
+        <div style="font-size:32px; margin-bottom:8px;">🔍</div>
+        <p style="font-weight:600; color:var(--primary); font-size:14px;">Browse all items →</p>
+      </div>
+    </a>`;
+}
+
 async function loadItemDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const id = urlParams.get('id');
   if (!id) return;
 
   const res = await API.listings.getById(id);
-  if (res.ok && res.listing) {
-    currentListing = res.listing;
-    document.title = `${res.listing.title} | CampusKart`;
-
-    // Title
-    const titleEl = document.querySelector('.item-title');
-    if (titleEl) titleEl.textContent = res.listing.title;
-
-    // Price
-    const priceBig = document.querySelector('.price-big');
-    if (priceBig) priceBig.textContent = API.formatPrice(res.listing);
-
-    // Main image
-    const mainImg = document.getElementById('main-img');
-    if (mainImg) mainImg.src = API.listingPhoto(res.listing);
-
-    // Lister details
-    const seller = res.listing.seller;
-    if (seller) {
-      const sellerName = `${seller.firstName} ${seller.lastName}`;
-      const sellerNameEl = document.querySelector('.user-card__name');
-      if (sellerNameEl) sellerNameEl.textContent = sellerName;
-      const sellerMetaEl = document.querySelector('.user-card__sub');
-      if (sellerMetaEl) sellerMetaEl.textContent = `${seller.branch || 'Campus Student'} · ${seller.year || 'Verified'}`;
-      const sellerAvatar = document.querySelector('.user-card__avatar');
-      if (sellerAvatar) sellerAvatar.src = API.userAvatar(seller);
-
-      // Update Chat button with seller's first name and link to messages
-      const sellerId = currentListing.seller._id || currentListing.seller;
-      const chatBtn = document.querySelector('.action-btns .btn-outline');
-      if (chatBtn) {
-        chatBtn.innerHTML = `<span class="material-symbols-outlined">chat_bubble</span> Chat with ${seller.firstName}`;
-        chatBtn.href = `messages.html?listing=${currentListing._id}&user=${sellerId}`;
-      }
-    }
-
-    // Wishlisted state
-    const wishlistBtn = document.querySelector('[onclick*="toggleWishlistPage"]');
-    if (wishlistBtn && res.wishlisted) {
-      wishlistBtn.dataset.wished = '1';
-      wishlistBtn.innerHTML = '<span class="material-symbols-outlined icon-fill" style="color:var(--error)">favorite</span> Saved!';
-    }
+  if (!res.ok || !res.listing) {
+    document.getElementById('detail-title').textContent = 'Item not found';
+    document.getElementById('detail-description').textContent = 'This listing may have been removed or is no longer available.';
+    return;
   }
+
+  currentListing = res.listing;
+  const l = res.listing;
+
+  document.title = `${l.title} | CampusKart`;
+
+  // Breadcrumb
+  const catSlug = { 'Lab Equipment': 'lab', 'Formal Wear': 'formal', 'Shoes': 'shoes', 'Books': 'books', 'Other': 'other' };
+  const bcBrowse = document.getElementById('bc-browse');
+  if (bcBrowse) {
+    bcBrowse.textContent = l.category || 'Browse';
+    bcBrowse.href = l.category ? `browse.html?cat=${catSlug[l.category] || 'other'}` : 'browse.html';
+  }
+  document.getElementById('bc-title').textContent = l.title;
+
+  // Title
+  document.getElementById('detail-title').textContent = l.title;
+
+  // Price - format properly
+  const priceEl = document.getElementById('detail-price');
+  const unitEl = document.getElementById('detail-price-unit');
+  if (l.listingType === 'rent' && l.rentalRate) {
+    priceEl.textContent = `₹${l.rentalRate.toLocaleString('en-IN')}`;
+    unitEl.textContent = `/ ${l.rentalDuration || 'period'}`;
+  } else {
+    priceEl.textContent = l.price ? `₹${l.price.toLocaleString('en-IN')}` : '—';
+    unitEl.textContent = '';
+  }
+
+  // Main image
+  const mainImg = document.getElementById('main-img');
+  if (mainImg && l.photos && l.photos.length > 0) {
+    mainImg.src = API.listingPhoto(l, 0);
+  }
+
+  // Badges
+  renderBadges(l);
+
+  // Thumbnails
+  if (l.photos && l.photos.length > 0) {
+    renderThumbnails(l.photos);
+  }
+
+  // Description
+  document.getElementById('detail-description').innerHTML = l.description
+    ? l.description.replace(/\n/g, '<br/>')
+    : 'No description provided.';
+
+  // Tags
+  renderTags(l);
+
+  // Info grid
+  renderInfoGrid(l);
+
+  // Seller
+  if (l.seller) renderSellerCard(l.seller);
+
+  // Wishlist state
+  const wishlistBtn = document.getElementById('wishlist-btn');
+  if (wishlistBtn && res.wishlisted) {
+    wishlistBtn.dataset.wished = '1';
+    wishlistBtn.innerHTML = '<span class="material-symbols-outlined icon-fill" style="color:var(--error)">favorite</span> Saved!';
+  }
+
+  // Similar items
+  loadSimilarItems(l.category, l._id);
 }
 
 loadItemDetail();

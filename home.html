@@ -109,6 +109,7 @@
     .section-title { font-family: 'Sora', sans-serif; font-size: clamp(18px, 3vw, 26px); font-weight: 700; }
     .section-link { font-size: 13px; color: var(--primary); font-weight: 500; display: flex; align-items: center; gap: 2px; }
     .section-link:hover { text-decoration: underline; }
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
     /* Stats bar */
     .stats-bar {
@@ -268,81 +269,10 @@
         <a href="browse.html" class="section-link">View all <span class="material-symbols-outlined" style="font-size:16px;">chevron_right</span></a>
       </div>
       <div class="listings-grid" id="listings-grid">
-        <!-- Listing 1 -->
-        <a href="item.html" class="card listing-card">
-          <div class="listing-card__image">
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWGyXM56nVVWhBsdpX_tcih5Wq0OPD0aPot_JtVwdgrRKH-_LVo3PIobe0dnf6Pz2kcmnkU2I9v1uM7glJDjz0Zbw28CE610r_gVUxBLfuknwopGiqREzPk1xU6u8IIQkpcdHkval8ghyyFkcFp75h4ryXg1ZYM23ct140gk74kF_hdCYvSytXPYIo1FJGVMzOhB_pxrXBZTxNThDP9ZBAxMmt06q6HT2jqcMdkYuJCfCB_Mb7H6irKw" alt="Lab Coat Size M"/>
-            <button class="listing-card__wishlist" onclick="event.preventDefault(); toggleWishlist(this)" title="Save to wishlist">
-              <span class="material-symbols-outlined icon-fill" style="font-size:18px;">favorite</span>
-            </button>
-            <span class="listing-card__type-badge badge badge-rent">Rent</span>
-          </div>
-          <div class="listing-card__body">
-            <h3 class="listing-card__title">Lab Coat – Size M (Like New)</h3>
-            <div class="listing-card__price">₹80 <span>/ semester</span></div>
-            <div class="listing-card__meta">
-              <span class="font-label" style="color:var(--on-surface-variant); text-transform:uppercase; font-size:10px;">Lab Equipment</span>
-              <span class="badge badge-condition-new badge-pill font-label" style="font-size:10px;">Like New</span>
-            </div>
-          </div>
-        </a>
-
-        <!-- Listing 2 -->
-        <a href="item.html" class="card listing-card">
-          <div class="listing-card__image">
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwDXCROZ7hhvyp_hdIaFiFzcAPWGGOmBi-Ec3_CLf_sDuDj9W9GPC0bi7ymSAJui1Qc6CcAzfIEDgYrtDqZnmgqVstpYIEqsqAE_HUWkr_4dBbXHJlxCVgsGOp5Ng1fOj2rhiIqf-C6dONNwgn2xN5UfHUILFQ3X9-jvMNB7vkSFxNavEeq9qXre5Y4YhLzPFxE4VY8SPfzLoKl4qIE2K5sulbNGQXyRGPU1mxhgiTWwlwe0nMd9B9VA" alt="Digital Electronics book"/>
-            <button class="listing-card__wishlist" onclick="event.preventDefault(); toggleWishlist(this)" title="Save to wishlist">
-              <span class="material-symbols-outlined" style="font-size:18px;">favorite</span>
-            </button>
-            <span class="listing-card__type-badge badge badge-buy">Buy</span>
-          </div>
-          <div class="listing-card__body">
-            <h3 class="listing-card__title">Digital Electronics by Morris Mano</h3>
-            <div class="listing-card__price">₹180</div>
-            <div class="listing-card__meta">
-              <span class="font-label" style="color:var(--on-surface-variant); text-transform:uppercase; font-size:10px;">Books</span>
-              <span class="badge badge-condition-good badge-pill font-label" style="font-size:10px;">Good</span>
-            </div>
-          </div>
-        </a>
-
-        <!-- Listing 3 -->
-        <a href="item.html" class="card listing-card">
-          <div class="listing-card__image">
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGzwmZSuL3Jv61pST8-qKsthNu5ClG5RB88whXmfVwh70w6P9UvK16ywA7peOArLkHJ76JvPc6P907ZYxKcS3pD7pAboLagM0LJ-REB8HhQ75o-kYC3gwNld114es61MoIocwUJ0cOtg6g2AAetvngXUpl3tVyX3-T0yCCdbKdjSfLUicXUYH7t0IJPbJHKldPiTtsnc1rKZ8JEKAr25_Vn46IWzl5HDXyg9EGB3e3Ces-jKkPMwN45Q" alt="Formal Blazer"/>
-            <button class="listing-card__wishlist" onclick="event.preventDefault(); toggleWishlist(this)" title="Save to wishlist">
-              <span class="material-symbols-outlined" style="font-size:18px;">favorite</span>
-            </button>
-            <span class="listing-card__type-badge badge badge-rent">Rent</span>
-          </div>
-          <div class="listing-card__body">
-            <h3 class="listing-card__title">Formal Blazer – Navy Blue (Size 40)</h3>
-            <div class="listing-card__price">₹250 <span>/ week</span></div>
-            <div class="listing-card__meta">
-              <span class="font-label" style="color:var(--on-surface-variant); text-transform:uppercase; font-size:10px;">Formal Wear</span>
-              <span class="badge badge-condition-new badge-pill font-label" style="font-size:10px;">Like New</span>
-            </div>
-          </div>
-        </a>
-
-        <!-- Listing 4 -->
-        <a href="item.html" class="card listing-card">
-          <div class="listing-card__image">
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJzSFJNWilfE_AdVoiqOEZd5_PHIq4Qat13CBIIvS6jXCrqvyx89WWFI5fF3P--QPdOgcMWHCjpLi2d48yNJg0eeme7MgfLIAtmWimVgIAPyX4OxFBPh5SZWRlZTFJnhKazpMfafkLjR_Gmj_TSaJMtHpD9rr85Nr5UDcdJXYmpk3JqdxFuSxIy5hLa2wWof2KRA63et3dDofbNyjwtfAQyDExLcXu8zqJ0vOotf91R3g-t_lNLUqlgA" alt="Formal shoes"/>
-            <button class="listing-card__wishlist" onclick="event.preventDefault(); toggleWishlist(this)" title="Save to wishlist">
-              <span class="material-symbols-outlined" style="font-size:18px;">favorite</span>
-            </button>
-            <span class="listing-card__type-badge badge badge-buy">Buy</span>
-          </div>
-          <div class="listing-card__body">
-            <h3 class="listing-card__title">Oxford Formal Shoes – Size 9 (Black)</h3>
-            <div class="listing-card__price">₹650</div>
-            <div class="listing-card__meta">
-              <span class="font-label" style="color:var(--on-surface-variant); text-transform:uppercase; font-size:10px;">Shoes</span>
-              <span class="badge badge-condition-good badge-pill font-label" style="font-size:10px;">Good</span>
-            </div>
-          </div>
-        </a>
+        <div style="grid-column:1/-1; text-align:center; padding:48px 0; color:var(--on-surface-variant);">
+          <span class="material-symbols-outlined" style="font-size:32px; color:var(--outline); animation:spin 1s linear infinite;">progress_activity</span>
+          <p style="margin-top:8px; font-size:13px;">Loading campus listings…</p>
+        </div>
       </div>
     </div>
   </section>

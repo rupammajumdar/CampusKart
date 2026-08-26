@@ -227,7 +227,7 @@ const API = (() => {
       if (photo.startsWith('http') || photo.startsWith('data:')) return photo;
       return `${window.location.origin}${photo}`;
     }
-    return `IMAGES/gate_nitrr_2026.jpg`;
+    return `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="%23e5e5ea"><rect width="400" height="300"/><text x="200" y="150" text-anchor="middle" dy=".3em" font-family="sans-serif" font-size="16" fill="%238e8e93">No image</text></svg>')}`;
   }
 
   function userAvatar(user) {
@@ -254,7 +254,7 @@ const API = (() => {
       document.addEventListener('error', function(e) {
         if (e.target.tagName === 'IMG' && e.target.src && !e.target.dataset.fallback) {
           e.target.dataset.fallback = '1';
-          e.target.src = 'IMAGES/gate_nitrr_2026.jpg';
+          e.target.style.display = 'none';
         }
       }, true);
 
