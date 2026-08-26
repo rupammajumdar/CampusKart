@@ -25,11 +25,15 @@ try {
       port: Number(process.env.SMTP_PORT) || 587,
       secure: Number(process.env.SMTP_PORT) === 465,
       auth: { user: SMTP_USER, pass: SMTP_PASS },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
     });
   } else {
     smtpTransporter = nodemailer.createTransport({
       service: 'gmail',
       auth: { user: SMTP_USER, pass: SMTP_PASS },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
     });
   }
   console.log(`📧 SMTP transporter initialized for: ${SMTP_USER}`);
@@ -164,8 +168,8 @@ async function sendVerificationEmail(user, token) {
     subject: '✅ Verify your CampusKart email',
     html: baseTemplate(`
       <p>Hi <strong>${user.firstName}</strong>,</p>
-      <p>Welcome to CampusKart! Click the button below to verify your campus email and activate your account.</p>
-      <a href="${link}" class="btn">Verify Email Address</a>
+      <p>Welcome to CampusKart! Click the button below to verify your campus email and create your account.</p>
+      <a href="${link}" class="btn">Verify Email & Create Account</a>
       <hr class="divider"/>
       <p style="font-size:13px; color:#8e8e93;">This link expires in <strong>30 minutes</strong>. If you didn't create a CampusKart account, you can safely ignore this email.</p>
     `),

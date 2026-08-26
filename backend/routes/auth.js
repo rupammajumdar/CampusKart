@@ -14,6 +14,7 @@ const {
 const TOKEN_EXPIRY_MS = (process.env.EMAIL_TOKEN_EXPIRES_MINUTES || 30) * 60 * 1000;
 
 const JWT_SECRET = process.env.JWT_SECRET || 'campuskart_super_secret_jwt_key_change_in_production';
+const REGISTRATION_TOKEN_SECRET = process.env.REGISTRATION_TOKEN_SECRET || 'campuskart_registration_token_secret_change_in_production';
 
 function generateJWT(userId) {
   return jwt.sign({ userId }, JWT_SECRET, {
@@ -21,7 +22,24 @@ function generateJWT(userId) {
   });
 }
 
+function generateRegistrationToken(userData) {
+  const minutes = parseInt(process.env.EMAIL_TOKEN_EXPIRES_MINUTES, 10) || 30;
+  return jwt.sign(userData, REGISTRATION_TOKEN_SECRET, {
+    expiresIn: `${minutes}m`,
+  });
+}
+
+function verifyRegistrationToken(token) {
+  try {
+    return jwt.verify(token, REGISTRATION_TOKEN_SECRET);
+  } catch (err) {
+    return null;
+  }
+}
+
 // ─── POST /api/auth/register ─────────────────────────────────────────────────
+// Step 1: Validate input, check if email exists, send verification email with registration token
+// User is NOT created in database yet
 router.post('/register', async (req, res) => {
   try {
     const { firstName, lastName, email, password, branch, year, hostel } = req.body;
@@ -32,34 +50,34 @@ router.post('/register', async (req, res) => {
     if (!password || password.length < 8) {
       return res.status(400).json({ error: 'Password must be at least 8 characters' });
     }
+    if (!firstName || !lastName || !branch || !year) {
+      return res.status(400).json({ error: 'All required fields must be provided' });
+    }
 
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing) {
       return res.status(409).json({ error: 'An account with this email already exists' });
     }
 
-    const token = uuidv4();
-    const expires = new Date(Date.now() + TOKEN_EXPIRY_MS);
-
-    const user = await User.create({
+    // Create a token containing registration data (NOT saved to DB yet)
+    const registrationData = {
       firstName,
       lastName,
       email: email.toLowerCase(),
-      passwordHash: password, // pre-save hook hashes it
+      password, // will be hashed when user is created
       branch,
       year,
       hostel: hostel || '',
-      isVerified: false,
-      isLister: true,
-      verificationToken: token,
-      verificationTokenExpires: expires,
-    });
+    };
 
-    const emailResult = await sendVerificationEmail(user, token);
+    const token = generateRegistrationToken(registrationData);
+
+    // Send verification email with the token
+    const tempUser = { email: email.toLowerCase(), firstName };
+    const emailResult = await sendVerificationEmail(tempUser, token);
 
     res.status(201).json({
-      message: 'Account created! Please check your email inbox to verify your account.',
-      userId: user._id,
+      message: 'Verification email sent! Please check your inbox to verify and create your account.',
       verificationLink: emailResult?.link,
       previewUrl: emailResult?.previewUrl,
     });
@@ -70,6 +88,8 @@ router.post('/register', async (req, res) => {
 });
 
 // ─── POST /api/auth/resend-verification ───────────────────────────────────────
+// With the new "verify then register" flow, users don't exist in DB until verified.
+// This endpoint now just tells them to register again to get a new link.
 router.post('/resend-verification', async (req, res) => {
   try {
     const { email } = req.body;
@@ -77,60 +97,72 @@ router.post('/resend-verification', async (req, res) => {
       return res.status(400).json({ error: 'Email address is required' });
     }
 
-    const user = await User.findOne({ email: email.trim().toLowerCase() });
-    if (!user) {
-      return res.json({ message: 'If this email is registered, a verification link has been sent.' });
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Check if a verified user already exists
+    const existing = await User.findOne({ email: cleanEmail });
+    if (existing) {
+      if (existing.isVerified) {
+        return res.status(400).json({ error: 'This account is already verified. You can sign in.' });
+      }
+      // Shouldn't happen with new flow, but handle gracefully
+      return res.status(400).json({ error: 'Registration pending. Please check your email or register again.' });
     }
 
-    if (user.isVerified) {
-      return res.status(400).json({ error: 'This account is already verified. You can sign in.' });
-    }
-
-    let token = user.verificationToken;
-    if (!token || !user.verificationTokenExpires || user.verificationTokenExpires < new Date()) {
-      token = uuidv4();
-      user.verificationToken = token;
-      user.verificationTokenExpires = new Date(Date.now() + TOKEN_EXPIRY_MS);
-      await user.save();
-    }
-
-    const emailResult = await sendVerificationEmail(user, token);
-
+    // No user exists - they need to register again to get a new verification link
     res.json({
-      message: 'Verification link has been sent to your email!',
-      verificationLink: emailResult?.link,
-      previewUrl: emailResult?.previewUrl,
+      message: 'No pending registration found. Please register again to receive a new verification link.',
+      action: 'register_again',
     });
   } catch (err) {
     console.error('Resend verification error:', err);
-    res.status(500).json({ error: 'Failed to resend verification email' });
+    res.status(500).json({ error: 'Failed to process request' });
   }
 });
 
 // ─── GET /api/auth/verify-email?token= ───────────────────────────────────────
+// Step 2: Verify token, create user in database with isVerified: true
 router.get('/verify-email', async (req, res) => {
   try {
     const { token } = req.query;
     if (!token) return res.status(400).json({ error: 'Verification token missing' });
 
-    const user = await User.findOne({
-      verificationToken: token,
-      verificationTokenExpires: { $gt: new Date() },
-    });
-
-    if (!user) {
+    // Decode and verify the registration token
+    const registrationData = verifyRegistrationToken(token);
+    if (!registrationData) {
       return res.status(400).send(`
         <html><body style="font-family:sans-serif;text-align:center;padding:60px">
           <h2 style="color:#e53e3e">❌ Invalid or expired link</h2>
-          <p>This verification link has expired or already been used.</p>
+          <p>This verification link has expired or is invalid.</p>
+          <a href="/index.html" style="color:#6c47ff;font-weight:600">Back to sign up</a>
+        </body></html>`);
+    }
+
+    const { firstName, lastName, email, password, branch, year, hostel } = registrationData;
+
+    // Double-check email doesn't exist (race condition protection)
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(409).send(`
+        <html><body style="font-family:sans-serif;text-align:center;padding:60px">
+          <h2 style="color:#e53e3e">❌ Account already exists</h2>
+          <p>An account with this email already exists.</p>
           <a href="/index.html" style="color:#6c47ff;font-weight:600">Back to sign in</a>
         </body></html>`);
     }
 
-    user.isVerified = true;
-    user.verificationToken = null;
-    user.verificationTokenExpires = null;
-    await user.save();
+    // Create user with isVerified: true
+    const user = await User.create({
+      firstName,
+      lastName,
+      email,
+      passwordHash: password, // pre-save hook hashes it
+      branch,
+      year,
+      hostel: hostel || '',
+      isVerified: true,
+      isLister: true,
+    });
 
     const jwtToken = generateJWT(user._id);
 
@@ -138,7 +170,12 @@ router.get('/verify-email', async (req, res) => {
     res.redirect(`/home.html?token=${jwtToken}&verified=1`);
   } catch (err) {
     console.error('Verify email error:', err);
-    res.status(500).json({ error: 'Verification failed' });
+    res.status(500).send(`
+      <html><body style="font-family:sans-serif;text-align:center;padding:60px">
+        <h2 style="color:#e53e3e">❌ Verification failed</h2>
+        <p>Something went wrong. Please try registering again.</p>
+        <a href="/index.html" style="color:#6c47ff;font-weight:600">Back to sign up</a>
+      </body></html>`);
   }
 });
 
@@ -203,23 +240,7 @@ router.post('/login', async (req, res) => {
     const ok = await user.comparePassword(password);
     if (!ok) return res.status(401).json({ error: 'Invalid email or password' });
 
-    if (!user.isVerified) {
-      let token = user.verificationToken;
-      if (!token || !user.verificationTokenExpires || user.verificationTokenExpires < new Date()) {
-        token = uuidv4();
-        user.verificationToken = token;
-        user.verificationTokenExpires = new Date(Date.now() + TOKEN_EXPIRY_MS);
-        await user.save();
-      }
-      const link = `${getAppUrl()}/api/auth/verify-email?token=${token}`;
-      return res.status(403).json({
-        needsVerification: true,
-        error: 'Your email address is not verified yet. Please check your inbox for the verification link.',
-        email: user.email,
-        verificationLink: link,
-      });
-    }
-
+    // With the new flow, all users in DB are verified
     const token = generateJWT(user._id);
     res.json({ token, user: user.toPublicJSON() });
   } catch (err) {

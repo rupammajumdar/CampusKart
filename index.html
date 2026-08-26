@@ -298,9 +298,9 @@
       <div style="display:flex; align-items:flex-start; gap:10px; color:#856404;">
         <span class="material-symbols-outlined" style="font-size:22px; color:#d97706; margin-top:2px;">mark_email_unread</span>
         <div style="flex:1;">
-          <strong style="font-size:14px; display:block; margin-bottom:4px; color:#92400e;">${isSignUp ? 'Account Created! Verification Required' : 'Email Verification Required'}</strong>
+          <strong style="font-size:14px; display:block; margin-bottom:4px; color:#92400e;">${isSignUp ? 'Verification Email Sent!' : 'Email Verification Required'}</strong>
           <p style="margin:0 0 10px 0; color:#78350f; font-size:12px; line-height:1.4;">
-            A verification link has been sent to <strong>${email}</strong>. Please check your inbox (and spam folder) and click the link to verify your account.
+            A verification link has been sent to <strong>${email}</strong>. Please check your inbox (and spam folder) and click the link to verify and create your account.
           </p>
           <div style="display:flex; flex-wrap:wrap; gap:8px;">
             <button type="button" onclick="resendVerificationLink('${email}')" class="btn" style="padding:6px 14px; font-size:12px; background:#ffffff; color:#6c47ff; border:1px solid #c7d2fe; display:inline-flex; align-items:center; gap:4px;"><span class="material-symbols-outlined" style="font-size:16px;">send</span> Resend Link</button>
@@ -314,7 +314,10 @@
   async function resendVerificationLink(email) {
     API.toast('Resending verification email…', 'info');
     const res = await API.auth.resendVerification(email);
-    if (res.ok || res.message) {
+    if (res.action === 'register_again') {
+      API.toast('Please register again to receive a new verification link.', 'info');
+      switchTab('signup');
+    } else if (res.ok || res.message) {
       API.toast(res.message || 'Verification email resent! Check your inbox.', 'success');
       showVerificationAlert(email);
     } else {
@@ -386,8 +389,8 @@
     const res = await API.auth.register({ firstName, lastName, email, password, branch, year });
     if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined">verified</span> Create Account'; }
 
-    if (res.ok || res.userId) {
-      API.toast('Account created! Check your email inbox to verify your account.', 'success');
+    if (res.ok || res.message) {
+      API.toast('Verification email sent! Check your inbox to verify your account.', 'success');
       showVerificationAlert(email, true);
       setTimeout(() => switchTab('signin'), 1500);
     } else {
