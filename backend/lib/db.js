@@ -3,10 +3,12 @@ const mongoose = require('mongoose');
 const dns = require('dns');
 
 // Fix for Windows DNS resolution issue with mongodb+srv:// (querySrv ECONNREFUSED)
-try {
-  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
-} catch (e) {
-  // Ignore if custom DNS fails
+if (process.platform === 'win32') {
+  try {
+    dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+  } catch (e) {
+    // Ignore if custom DNS fails
+  }
 }
 
 let isConnected = false;
@@ -68,20 +70,20 @@ async function seedDemoAccounts() {
 }
 
 async function connectDB() {
-  if (isConnected) return;
+  if (isConnected && mongoose.connection.readyState === 1) return;
 
   const uri = process.env.MONGODB_URI || 'mongodb+srv://utpalmajumdar6_db_user:rQTbZeNjpOAptfO0@cluster0.zee69ax.mongodb.net/campuskart';
 
   try {
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 15000,
+      serverSelectionTimeoutMS: 8000,
+      connectTimeoutMS: 8000,
     });
     isConnected = true;
     console.log(`✅ MongoDB Atlas connected: ${mongoose.connection.host}`);
     await seedDemoAccounts();
   } catch (err) {
     console.error('❌ MongoDB connection error:', err.message);
-    console.warn('📌 Make sure your IP address is whitelisted (0.0.0.0/0) in MongoDB Atlas Network Access.');
   }
 }
 
