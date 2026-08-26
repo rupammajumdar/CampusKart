@@ -37,7 +37,7 @@ router.get('/', authMiddleware(), async (req, res) => {
           msg.sender._id.toString() === userId.toString() ? msg.receiver : msg.sender;
 
         threadMap.set(key, {
-          listingId: msg.listing._id,
+          listingId: msg.listing._id.toString(),
           listing: msg.listing,
           partner,
           lastMessage: msg.text,
@@ -60,6 +60,16 @@ router.get('/', authMiddleware(), async (req, res) => {
   } catch (err) {
     console.error('Get threads error:', err);
     res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
+// ─── GET /api/messages/me/unread — unread count (MUST be before :id routes) ──
+router.get('/me/unread', authMiddleware(), async (req, res) => {
+  try {
+    const count = await Message.countDocuments({ receiver: req.user._id, isRead: false });
+    res.json({ unreadCount: count });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get unread count' });
   }
 });
 
@@ -156,16 +166,6 @@ router.post('/:listingId/:receiverId', authMiddleware(), async (req, res) => {
   } catch (err) {
     console.error('Send message error:', err);
     res.status(500).json({ error: 'Failed to send message' });
-  }
-});
-
-// ─── GET /api/messages/unread-count ──────────────────────────────────────────
-router.get('/me/unread', authMiddleware(), async (req, res) => {
-  try {
-    const count = await Message.countDocuments({ receiver: req.user._id, isRead: false });
-    res.json({ unreadCount: count });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to get unread count' });
   }
 });
 

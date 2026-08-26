@@ -172,6 +172,38 @@
     }
     .chat-send-btn:hover { background:var(--surface-tint); transform:scale(1.05); }
     .chat-safety-msg { text-align:center; font-size:11px; color:var(--on-surface-variant); margin-top:6px; }
+
+    /* Message bubbles */
+    .message-bubble {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.45;
+      word-wrap: break-word;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .message-bubble.outgoing {
+      align-self: flex-end;
+      background: var(--primary);
+      color: var(--on-primary);
+      border-bottom-right-radius: 6px;
+    }
+    .message-bubble.incoming {
+      align-self: flex-start;
+      background: var(--surface-container-high);
+      color: var(--on-surface);
+      border-bottom-left-radius: 6px;
+    }
+    .message-bubble__time {
+      font-size: 11px;
+      opacity: 0.65;
+      margin-bottom: 3px;
+    }
+    .message-bubble__text {
+      white-space: pre-wrap;
+    }
+
     .reserve-btn {
       padding: 7px 14px;
       background:var(--primary);
@@ -361,6 +393,11 @@ async function selectThread(listingId, partnerId, forceScroll = false) {
   activeListingId = listingId;
   activePartnerId = partnerId;
 
+  // Hide thread list on mobile
+  if (window.innerWidth <= 767) {
+    document.getElementById('thread-list').classList.remove('show-mobile');
+  }
+
   const res = await API.messages.thread(listingId, partnerId);
   if (res.ok) {
     activeListing = res.listing;
@@ -420,6 +457,14 @@ async function sendMessage() {
 function handleChatKey(e) { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
 function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
 
+function showThreadList() {
+  document.getElementById('thread-list').classList.add('show-mobile');
+}
+
+function hideThreadList() {
+  document.getElementById('thread-list').classList.remove('show-mobile');
+}
+
 async function toggleReserve(btn) {
   if (!activeListingId || !activePartnerId) return;
   const res = await API.listings.reserve(activeListingId, activePartnerId, 'buy');
@@ -434,13 +479,13 @@ async function toggleReserve(btn) {
 
 loadThreads();
 
-// Instant 1-second live polling for threads and chat bubbles
+// Poll every 5 seconds for new messages
 setInterval(() => {
   if (activeListingId && activePartnerId) {
     selectThread(activeListingId, activePartnerId);
   }
   loadThreads();
-}, 1000);
+}, 5000);
 </script>
 </body>
 </html>
