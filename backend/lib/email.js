@@ -91,7 +91,16 @@ async function sendEmail({ to, subject, html }) {
         console.log(`✅ Email delivered to ${to} via Resend API: ${data.id}`);
         return { ok: true, provider: 'resend', id: data.id };
       }
-      console.error(`⚠️ Resend API error for ${to}:`, error?.message || error);
+      console.error(`❌ Resend API Error for ${to}:`, error?.message || error);
+      if (error?.message && error.message.includes('only send testing emails')) {
+        console.log(`\n======================================================`);
+        console.log(`💡 RESEND SANDBOX RESTRICTION:`);
+        console.log(`Resend Sandbox (onboarding@resend.dev) only allows sending to the account owner's email (utpalmajumdar6@gmail.com).`);
+        console.log(`👉 TO SEND REAL EMAILS TO ANY USER: Add your Gmail or SMTP credentials in backend/.env:`);
+        console.log(`   EMAIL_USER=yourgmail@gmail.com`);
+        console.log(`   EMAIL_PASS=your_16_digit_app_password`);
+        console.log(`======================================================\n`);
+      }
       lastErr = error?.message || error;
     } catch (err) {
       console.error(`⚠️ Resend API exception for ${to}:`, err.message);
