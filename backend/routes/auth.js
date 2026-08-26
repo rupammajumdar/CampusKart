@@ -106,7 +106,50 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const cleanEmail = email.trim().toLowerCase();
+    let user = await User.findOne({ email: cleanEmail });
+
+    // On-demand creation of demo accounts if missing in database
+    if (!user) {
+      if (cleanEmail === 'admin@campuskart.com' && password === 'admin123456') {
+        user = await User.create({
+          firstName: 'Admin',
+          lastName: 'Coordinator',
+          email: 'admin@campuskart.com',
+          password: 'admin123456',
+          branch: 'CSE',
+          year: '4th Year',
+          role: 'admin',
+          isVerified: true,
+          isLister: true,
+        });
+      } else if (cleanEmail === 'student@gmail.com' && password === 'student123456') {
+        user = await User.create({
+          firstName: 'Aman',
+          lastName: 'Kumar',
+          email: 'student@gmail.com',
+          password: 'student123456',
+          branch: 'CSE',
+          year: '3rd Year',
+          role: 'student',
+          isVerified: true,
+          isLister: true,
+        });
+      } else if (cleanEmail === 'student2@gmail.com' && password === 'student123456') {
+        user = await User.create({
+          firstName: 'Priya',
+          lastName: 'Sharma',
+          email: 'student2@gmail.com',
+          password: 'student123456',
+          branch: 'ECE',
+          year: '2nd Year',
+          role: 'student',
+          isVerified: true,
+          isLister: true,
+        });
+      }
+    }
+
     if (!user) return res.status(401).json({ error: 'Invalid email or password' });
     if (user.isBanned) return res.status(403).json({ error: 'Your account has been suspended' });
 
