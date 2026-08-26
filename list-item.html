@@ -468,16 +468,13 @@ async function handleSubmit(e, isDraft = false) {
   const quantity = document.getElementById('quantity')?.value || 1;
   const tags = document.getElementById('branch-tag')?.value || '';
 
-  // Check if user is lister
+  // Auto-upgrade user to lister if needed
   const user = API.getUser();
-  if (!user?.isLister) {
-    // Attempt auto-upgrade to lister if verified
+  if (user && !user.isLister) {
     const upgradeRes = await API.users.becomeLister();
-    if (!upgradeRes.ok) {
-      API.toast(upgradeRes.error || 'Please upgrade to a Lister in your profile first.', 'error');
-      return;
+    if (upgradeRes.ok && upgradeRes.user) {
+      API.setUser(upgradeRes.user);
     }
-    API.setUser(upgradeRes.user);
   }
 
   const formData = new FormData();

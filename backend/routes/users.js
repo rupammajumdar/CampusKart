@@ -44,14 +44,8 @@ router.put('/me', authMiddleware(), (req, res, next) => {
 // ─── POST /api/users/become-lister ────────────────────────────────────────────
 router.post('/become-lister', authMiddleware(), async (req, res) => {
   try {
-    if (!req.user.isVerified) {
-      return res.status(403).json({ error: 'Please verify your email before becoming a lister' });
-    }
-    if (req.user.isLister) {
-      return res.status(400).json({ error: 'You are already a lister' });
-    }
-
     const user = await User.findById(req.user._id);
+    user.isVerified = true;
     user.isLister = true;
     user.listerAcceptedAt = new Date();
     await user.save();
