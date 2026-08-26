@@ -5,7 +5,8 @@
  */
 
 const API = (() => {
-  const BASE = 'http://localhost:5000/api';
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const BASE = isLocal ? 'http://localhost:5000/api' : '/api';
 
   // ─── Auth helpers ────────────────────────────────────────────────────────────
   function getToken() {
