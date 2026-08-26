@@ -344,18 +344,15 @@ async function handleInterest(e) {
   }
   if (!currentListing) return;
 
-  const btn = e.target.closest('button');
-  if (btn) btn.disabled = true;
+  const sellerId = currentListing.seller._id || currentListing.seller;
 
-  const res = await API.listings.interest(currentListing._id);
-  if (res.ok) {
-    API.toast('Interest expressed! Opening chat…', 'success');
-    const sellerId = currentListing.seller._id || currentListing.seller;
-    setTimeout(() => window.location.href = `messages.html?listing=${currentListing._id}&user=${sellerId}`, 1000);
-  } else {
-    if (btn) btn.disabled = false;
-    API.toast(res.error || 'Failed to send interest request', 'error');
-  }
+  // Navigate to messages immediately
+  const msgUrl = `messages.html?listing=${currentListing._id}&user=${sellerId}`;
+
+  // Fire interest request in background (don't block navigation)
+  API.listings.interest(currentListing._id).catch(() => {});
+
+  window.location.href = msgUrl;
 }
 
 async function toggleWishlistPage(btn) {
@@ -430,12 +427,21 @@ async function loadItemDetail() {
     // Lister details
     const seller = res.listing.seller;
     if (seller) {
+      const sellerName = `${seller.firstName} ${seller.lastName}`;
       const sellerNameEl = document.querySelector('.user-card__name');
-      if (sellerNameEl) sellerNameEl.textContent = `${seller.firstName} ${seller.lastName}`;
+      if (sellerNameEl) sellerNameEl.textContent = sellerName;
       const sellerMetaEl = document.querySelector('.user-card__sub');
       if (sellerMetaEl) sellerMetaEl.textContent = `${seller.branch || 'Campus Student'} · ${seller.year || 'Verified'}`;
       const sellerAvatar = document.querySelector('.user-card__avatar');
       if (sellerAvatar) sellerAvatar.src = API.userAvatar(seller);
+
+      // Update Chat button with seller's first name and link to messages
+      const sellerId = currentListing.seller._id || currentListing.seller;
+      const chatBtn = document.querySelector('.action-btns .btn-outline');
+      if (chatBtn) {
+        chatBtn.innerHTML = `<span class="material-symbols-outlined">chat_bubble</span> Chat with ${seller.firstName}`;
+        chatBtn.href = `messages.html?listing=${currentListing._id}&user=${sellerId}`;
+      }
     }
 
     // Wishlisted state
