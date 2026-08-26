@@ -2,7 +2,8 @@
   "version": 2,
   "env": {
     "EMAIL_USER": "majumdarrupam82@gmail.com",
-    "EMAIL_PASS": "wrtw hrkk hxtv qdhc"
+    "EMAIL_PASS": "wrtw hrkk hxtv qdhc",
+    "APP_URL": "https://campus-kart-nine.vercel.app"
   },
   "rewrites": [
     {
