@@ -12,51 +12,53 @@ router.get('/', authMiddleware(), async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Find all unique listing+partner combos the user is involved in
-    const messages = await Message.find({
-      $or: [{ sender: userId }, { receiver: userId }],
-    })
-      .sort({ createdAt: -1 })
-      .populate('listing', 'title photos status category')
-      .populate('sender', 'firstName lastName profilePhoto branch year')
-      .populate('receiver', 'firstName lastName profilePhoto branch year');
+    // Aggregation pipeline: get unique threads with last message + unread count
+    const threads = await Message.aggregate([
+      { $match: { $or: [{ sender: userId }, { receiver: userId }] } },
+      { $sort: { createdAt: -1 } },
+      {
+        $group: {
+          _id: { listing: '$listing', partner: {
+            $cond: [{ $eq: ['$sender', userId] }, '$receiver', '$sender']
+          }},
+          lastMessage: { $first: '$text' },
+          lastMessageAt: { $first: '$createdAt' },
+          lastMessageId: { $first: '$_id' },
+          unreadCount: {
+            $sum: {
+              $cond: [{ $and: [{ $eq: ['$receiver', userId] }, { $eq: ['$isRead', false] }] }, 1, 0]
+            }
+          },
+        }
+      },
+      { $sort: { lastMessageAt: -1 } },
+      { $limit: 50 },
+    ]);
 
-    // Deduplicate into threads
-    const threadMap = new Map();
-    for (const msg of messages) {
-      if (!msg.listing || !msg.sender || !msg.receiver) continue;
+    if (threads.length === 0) return res.json({ threads: [] });
 
-      const partnerId =
-        msg.sender._id.toString() === userId.toString()
-          ? msg.receiver._id.toString()
-          : msg.sender._id.toString();
-      const key = `${msg.listing._id}_${partnerId}`;
+    // Bulk fetch all referenced listings and partners in 2 queries
+    const listingIds = threads.map(t => t._id.listing);
+    const partnerIds = threads.map(t => t._id.partner);
 
-      if (!threadMap.has(key)) {
-        const partner =
-          msg.sender._id.toString() === userId.toString() ? msg.receiver : msg.sender;
+    const [listings, partners] = await Promise.all([
+      Listing.find({ _id: { $in: listingIds } }).select('title photos status category').lean(),
+      User.find({ _id: { $in: partnerIds } }).select('firstName lastName profilePhoto branch year').lean(),
+    ]);
 
-        threadMap.set(key, {
-          listingId: msg.listing._id.toString(),
-          listing: msg.listing,
-          partner,
-          lastMessage: msg.text,
-          lastMessageAt: msg.createdAt,
-          unreadCount: 0,
-        });
-      }
+    const listingMap = new Map(listings.map(l => [l._id.toString(), l]));
+    const partnerMap = new Map(partners.map(p => [p._id.toString(), p]));
 
-      // Count unread for this thread
-      if (msg.receiver._id.toString() === userId.toString() && !msg.isRead) {
-        threadMap.get(key).unreadCount += 1;
-      }
-    }
+    const result = threads.map(t => ({
+      listingId: t._id.listing.toString(),
+      listing: listingMap.get(t._id.listing.toString()) || null,
+      partner: partnerMap.get(t._id.partner.toString()) || null,
+      lastMessage: t.lastMessage,
+      lastMessageAt: t.lastMessageAt,
+      unreadCount: t.unreadCount,
+    })).filter(t => t.listing && t.partner);
 
-    const threads = Array.from(threadMap.values()).sort(
-      (a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt)
-    );
-
-    res.json({ threads });
+    res.json({ threads: result });
   } catch (err) {
     console.error('Get threads error:', err);
     res.status(500).json({ error: 'Failed to fetch messages' });
@@ -83,25 +85,25 @@ router.get('/:listingId/:otherId', authMiddleware(), async (req, res) => {
       return res.status(400).json({ error: 'Invalid parameters' });
     }
 
-    const messages = await Message.find({
-      listing: listingId,
-      $or: [
-        { sender: userId, receiver: otherId },
-        { sender: otherId, receiver: userId },
-      ],
-    })
-      .sort({ createdAt: 1 })
-      .populate('sender', 'firstName lastName profilePhoto')
-      .populate('receiver', 'firstName lastName profilePhoto');
-
-    // Mark messages as read
-    await Message.updateMany(
-      { listing: listingId, sender: otherId, receiver: userId, isRead: false },
-      { isRead: true }
-    );
-
-    const listing = await Listing.findById(listingId).select('title photos status category listingType price rentalRate seller reservedFor');
-    const other = await User.findById(otherId).select('firstName lastName profilePhoto branch year isVerified rating');
+    // 2 queries instead of 4: fetch messages + mark read in parallel with listing/other
+    const [messages, , listing, other] = await Promise.all([
+      Message.find({
+        listing: listingId,
+        $or: [
+          { sender: userId, receiver: otherId },
+          { sender: otherId, receiver: userId },
+        ],
+      })
+        .sort({ createdAt: 1 })
+        .populate('sender', 'firstName lastName profilePhoto')
+        .lean(),
+      Message.updateMany(
+        { listing: listingId, sender: otherId, receiver: userId, isRead: false },
+        { $set: { isRead: true } }
+      ),
+      Listing.findById(listingId).select('title photos status category listingType price rentalRate seller reservedFor').lean(),
+      User.findById(otherId).select('firstName lastName profilePhoto branch year isVerified rating').lean(),
+    ]);
 
     res.json({ messages, listing, other });
   } catch (err) {
@@ -124,15 +126,17 @@ router.post('/:listingId/:receiverId', authMiddleware(), async (req, res) => {
       return res.status(400).json({ error: 'Message text is required' });
     }
 
-    const listing = await Listing.findById(listingId);
-    if (!listing) return res.status(404).json({ error: 'Listing not found' });
-
-    const receiver = await User.findById(receiverId);
-    if (!receiver) return res.status(404).json({ error: 'Recipient not found' });
-
     if (req.user._id.toString() === receiverId) {
       return res.status(400).json({ error: 'Cannot send a message to yourself' });
     }
+
+    // 1 query to check listing + receiver existence
+    const [listing, receiver] = await Promise.all([
+      Listing.findById(listingId).select('title').lean(),
+      User.findById(receiverId).select('firstName email').lean(),
+    ]);
+    if (!listing) return res.status(404).json({ error: 'Listing not found' });
+    if (!receiver) return res.status(404).json({ error: 'Recipient not found' });
 
     const message = await Message.create({
       listing: listingId,
@@ -143,20 +147,12 @@ router.post('/:listingId/:receiverId', authMiddleware(), async (req, res) => {
 
     await message.populate('sender', 'firstName lastName profilePhoto');
 
-    // Send email notification (non-blocking, rate-limited to first message per hour per thread)
-    const recentMsg = await Message.findOne({
-      listing: listingId,
-      sender: req.user._id,
-      receiver: receiverId,
-      createdAt: { $gt: new Date(Date.now() - 60 * 60 * 1000) },
-    }).sort({ createdAt: -1 });
-
-    // Only send if this is the first message in the last hour
+    // Rate-limit emails: 1 per thread per hour (combined into single count query)
     const msgCount = await Message.countDocuments({
       listing: listingId,
       sender: req.user._id,
       receiver: receiverId,
-      createdAt: { $gt: new Date(Date.now() - 60 * 60 * 1000) },
+      createdAt: { $gt: new Date(Date.now() - 3600000) },
     });
     if (msgCount <= 1) {
       sendNewMessageEmail(receiver, req.user, listing).catch(console.error);

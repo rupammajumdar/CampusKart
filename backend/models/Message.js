@@ -15,5 +15,8 @@ const messageSchema = new mongoose.Schema(
 messageSchema.index({ listing: 1, sender: 1, receiver: 1 });
 // Index for unread count
 messageSchema.index({ receiver: 1, isRead: 1 });
+// Index for thread aggregation (sender/receiver + createdAt)
+messageSchema.index({ sender: 1, createdAt: -1 });
+messageSchema.index({ receiver: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Message', messageSchema);

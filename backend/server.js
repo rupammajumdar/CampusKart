@@ -34,15 +34,8 @@ app.use(cors({
   credentials: true,
 }));
 
-// Auto DB connection middleware for serverless / requests
-app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-  } catch (e) {
-    console.error('DB Connection Error:', e);
-  }
-  next();
-});
+// Enable ETag for conditional requests (304 responses)
+app.set('etag', 'strong');
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

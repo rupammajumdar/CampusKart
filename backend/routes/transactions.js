@@ -22,7 +22,8 @@ router.get('/', authMiddleware(), async (req, res) => {
       .sort({ createdAt: -1 })
       .populate('listing', 'title photos category condition listingType price rentalRate')
       .populate('buyer', 'firstName lastName branch year profilePhoto rating')
-      .populate('seller', 'firstName lastName branch year profilePhoto rating');
+      .populate('seller', 'firstName lastName branch year profilePhoto rating')
+      .lean();
 
     res.json({ transactions });
   } catch (err) {

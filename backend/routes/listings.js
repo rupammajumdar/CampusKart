@@ -96,7 +96,8 @@ router.get('/', async (req, res) => {
         .sort(sortOpt)
         .skip(skip)
         .limit(Number(limit))
-        .populate('seller', 'firstName lastName branch year isVerified rating profilePhoto'),
+        .populate('seller', 'firstName lastName branch year isVerified rating profilePhoto')
+        .lean(),
       Listing.countDocuments(filter),
     ]);
 
@@ -166,12 +167,31 @@ router.post(
   }
 );
 
+// ─── GET /api/listings/my — seller's own listings ────────────────────────────
+router.get('/seller/my', authMiddleware(), async (req, res) => {
+  try {
+    const { status } = req.query;
+    const filter = { seller: req.user._id };
+    if (status) filter.status = status;
+
+    const listings = await Listing.find(filter)
+      .sort({ createdAt: -1 })
+      .populate('reservedFor', 'firstName lastName branch year')
+      .lean();
+
+    res.json({ listings });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch your listings' });
+  }
+});
+
 // ─── GET /api/listings/:id — get listing detail ───────────────────────────────
 router.get('/:id', authMiddleware({ optional: true }), async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id)
       .populate('seller', 'firstName lastName branch year isVerified rating profilePhoto createdAt')
-      .populate('reservedFor', 'firstName lastName branch year');
+      .populate('reservedFor', 'firstName lastName branch year')
+      .lean();
 
     if (!listing) return res.status(404).json({ error: 'Listing not found' });
 
@@ -402,23 +422,6 @@ router.post('/:id/report', authMiddleware(), requireVerified, async (req, res) =
     res.json({ message: 'Report submitted. Our admin team will review it.' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to submit report' });
-  }
-});
-
-// ─── GET /api/listings/my — seller's own listings ────────────────────────────
-router.get('/seller/my', authMiddleware(), async (req, res) => {
-  try {
-    const { status } = req.query;
-    const filter = { seller: req.user._id };
-    if (status) filter.status = status;
-
-    const listings = await Listing.find(filter)
-      .sort({ createdAt: -1 })
-      .populate('reservedFor', 'firstName lastName branch year');
-
-    res.json({ listings });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch your listings' });
   }
 });
 

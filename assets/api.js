@@ -223,13 +223,19 @@ const API = (() => {
 
   function listingPhoto(listing, index = 0) {
     if (listing.photos && listing.photos[index]) {
-      return `http://localhost:5000${listing.photos[index]}`;
+      const photo = listing.photos[index];
+      if (photo.startsWith('http') || photo.startsWith('data:')) return photo;
+      return `${window.location.origin}${photo}`;
     }
-    return `https://placehold.co/400x300/eef2ff/6c47ff?text=${encodeURIComponent(listing.category || 'Item')}`;
+    return `IMAGES/gate_nitrr_2026.jpg`;
   }
 
   function userAvatar(user) {
-    if (user?.profilePhoto) return `http://localhost:5000${user.profilePhoto}`;
+    if (user?.profilePhoto) {
+      const photo = user.profilePhoto;
+      if (photo.startsWith('http')) return photo;
+      return `${window.location.origin}${photo}`;
+    }
     const name = encodeURIComponent(`${user?.firstName || '?'} ${user?.lastName || ''}`);
     return `https://ui-avatars.com/api/?name=${name}&background=6c47ff&color=fff&size=64`;
   }
@@ -244,13 +250,21 @@ const API = (() => {
   function initNav() {
     if (typeof document === 'undefined') return;
     document.addEventListener('DOMContentLoaded', () => {
+      // Global image error handler: replace broken images with NIT RR gate
+      document.addEventListener('error', function(e) {
+        if (e.target.tagName === 'IMG' && e.target.src && !e.target.dataset.fallback) {
+          e.target.dataset.fallback = '1';
+          e.target.src = 'IMAGES/gate_nitrr_2026.jpg';
+        }
+      }, true);
+
       // Inject NIT Raipur logo into topnav brand across all pages
       const brand = document.querySelector('.topnav__brand');
       if (brand && !brand.querySelector('.nitrr-logo')) {
         brand.style.display = 'inline-flex';
         brand.style.alignItems = 'center';
         brand.style.gap = '8px';
-        brand.insertAdjacentHTML('afterbegin', '<img src="https://www.nitrr.ac.in/images/logo.png" alt="NITRR" class="nitrr-logo" style="height:32px; object-fit:contain;"/>');
+        brand.insertAdjacentHTML('afterbegin', '<img src="https://www.nitrr.ac.in/images/logo.png" alt="NITRR" class="nitrr-logo" style="height:32px; object-fit:contain;" onerror="this.onerror=null;this.src=\'IMAGES/gate_nitrr_2026.jpg\'"/>');
       }
 
 
