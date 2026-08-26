@@ -61,6 +61,7 @@ router.post('/register', async (req, res) => {
       message: 'Account created! Please check your email inbox to verify your account.',
       userId: user._id,
       verificationLink: emailResult?.link,
+      previewUrl: emailResult?.previewUrl,
     });
   } catch (err) {
     console.error('Register error:', err);
@@ -98,6 +99,7 @@ router.post('/resend-verification', async (req, res) => {
     res.json({
       message: 'Verification link has been sent to your email!',
       verificationLink: emailResult?.link,
+      previewUrl: emailResult?.previewUrl,
     });
   } catch (err) {
     console.error('Resend verification error:', err);

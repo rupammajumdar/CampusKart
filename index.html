@@ -278,7 +278,7 @@
     document.getElementById('signup-panel').style.display = isSignIn ? 'none' : 'block';
   }
 
-  function showVerificationAlert(email, link, isSignUp = false) {
+  function showVerificationAlert(email, link, previewUrl = null, isSignUp = false) {
     const alertBox = document.getElementById('verify-alert-box');
     if (!alertBox) return;
     alertBox.style.display = 'block';
@@ -293,6 +293,7 @@
           </p>
           <div style="display:flex; flex-wrap:wrap; gap:8px;">
             ${link ? `<a href="${link}" class="btn btn-primary" style="padding:6px 14px; font-size:12px; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><span class="material-symbols-outlined" style="font-size:16px;">verified</span> Verify Email Now</a>` : ''}
+            ${previewUrl ? `<a href="${previewUrl}" target="_blank" class="btn" style="padding:6px 14px; font-size:12px; background:#eef2ff; color:#3b82f6; border:1px solid #bfdbfe; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><span class="material-symbols-outlined" style="font-size:16px;">visibility</span> View Sent Test Mail</a>` : ''}
             <button type="button" onclick="resendVerificationLink('${email}')" class="btn" style="padding:6px 14px; font-size:12px; background:#ffffff; color:#6c47ff; border:1px solid #c7d2fe; display:inline-flex; align-items:center; gap:4px;"><span class="material-symbols-outlined" style="font-size:16px;">send</span> Resend Link</button>
           </div>
         </div>
@@ -306,9 +307,7 @@
     const res = await API.auth.resendVerification(email);
     if (res.ok || res.message) {
       API.toast(res.message || 'Verification email resent! Check your inbox.', 'success');
-      if (res.verificationLink) {
-        showVerificationAlert(email, res.verificationLink);
-      }
+      showVerificationAlert(email, res.verificationLink, res.previewUrl);
     } else {
       API.toast(res.error || 'Failed to resend email', 'error');
     }
@@ -353,7 +352,7 @@
       setTimeout(() => window.location.href = targetPage, 800);
     } else if (res.needsVerification) {
       API.toast('Please verify your email first. Check your inbox.', 'error');
-      showVerificationAlert(email, res.verificationLink);
+      showVerificationAlert(email, res.verificationLink, res.previewUrl);
     } else {
       API.toast(res.error || 'Login failed', 'error');
     }
@@ -380,7 +379,7 @@
 
     if (res.ok || res.userId) {
       API.toast('Account created! Check your email inbox to verify your account.', 'success');
-      showVerificationAlert(email, res.verificationLink, true);
+      showVerificationAlert(email, res.verificationLink, res.previewUrl, true);
       setTimeout(() => switchTab('signin'), 1500);
     } else {
       API.toast(res.error || 'Registration failed', 'error');
