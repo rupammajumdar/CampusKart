@@ -48,6 +48,12 @@ app.use(express.static(frontendDir));
 // Serve uploaded images
 app.use('/uploads', express.static(uploadsDir));
 
+// ─── Ensure DB connected before API requests (Vercel serverless) ───────────
+let dbReady = connectDB();
+app.use('/api', async (req, res, next) => {
+  try { await dbReady; next(); } catch { res.status(503).json({ error: 'Database unavailable' }); }
+});
+
 // ─── API routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/auth', authRoutes);
