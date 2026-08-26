@@ -6,10 +6,14 @@ const fs = require('fs');
 
 const { connectDB } = require('./lib/db');
 
-// ─── Create uploads directory if it doesn't exist ────────────────────────────
+// ─── Create uploads directory if it doesn't exist (local only) ────────────────
 const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (e) {
+  // Ignore filesystem write errors in serverless environments (Vercel)
 }
 
 // ─── Import routes ────────────────────────────────────────────────────────────
