@@ -131,7 +131,12 @@ router.post(
         return res.status(400).json({ error: 'Missing required listing fields' });
       }
 
-      const photos = (req.files || []).map((f) => `/uploads/${f.filename}`);
+      const photos = (req.files || []).map((f) => {
+        if (f.buffer) {
+          return `data:${f.mimetype};base64,${f.buffer.toString('base64')}`;
+        }
+        return `/uploads/${f.filename}`;
+      });
 
       const listing = await Listing.create({
         seller: req.user._id,
@@ -147,13 +152,11 @@ router.post(
         quantity: quantity ? Number(quantity) : 1,
         photos,
         tags: tags ? tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
-        status: status === 'draft' ? 'draft' : 'pending', // Requires Admin approval before listing goes live!
+        status: status === 'draft' ? 'draft' : 'live',
       });
 
       res.status(201).json({
-        message: status === 'draft'
-          ? 'Draft saved.'
-          : 'Listing submitted for review. Admin will approve it shortly!',
+        message: status === 'draft' ? 'Draft saved.' : 'Listing published successfully!',
         listing,
       });
     } catch (err) {
@@ -227,7 +230,12 @@ router.put('/:id', authMiddleware(), requireVerified, upload.array('photos', 5),
 
     // New photos
     if (req.files && req.files.length > 0) {
-      const newPhotos = req.files.map((f) => `/uploads/${f.filename}`);
+      const newPhotos = req.files.map((f) => {
+        if (f.buffer) {
+          return `data:${f.mimetype};base64,${f.buffer.toString('base64')}`;
+        }
+        return `/uploads/${f.filename}`;
+      });
       listing.photos = [...listing.photos, ...newPhotos].slice(0, 5);
     }
 
