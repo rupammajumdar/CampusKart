@@ -345,6 +345,7 @@ if (!API.requireAuth('index.html')) {
 let activeListingId = null;
 let activePartnerId = null;
 let activeListing = null;
+let isInitialLoad = true;
 
 async function loadThreads() {
   const res = await API.messages.threads();
@@ -352,39 +353,50 @@ async function loadThreads() {
     const scrollContainer = document.querySelector('.threads-scroll');
     if (!scrollContainer) return;
 
-    if (res.threads.length === 0) {
+    if (res.threads.length === 0 && !activeListingId) {
       scrollContainer.innerHTML = `<div style="padding:24px; text-align:center; color:var(--on-surface-variant); font-size:14px;">No messages yet.</div>`;
       return;
     }
 
-    scrollContainer.innerHTML = res.threads.map((t, idx) => `
-      <div class="thread-item ${idx === 0 ? 'active' : ''}" onclick="selectThread('${t.listingId}', '${t.partner._id}')">
-        <div style="display:flex; gap:10px; align-items:flex-start;">
-          <div class="thread-avatar-wrap">
-            <img class="thread-avatar" src="${API.userAvatar(t.partner)}" alt="${t.partner.firstName}"/>
-            <span class="online-dot online"></span>
-          </div>
-          <div class="thread-body">
-            <div style="display:flex; justify-space-between; margin-bottom:2px;">
-              <span class="thread-name">${t.partner.firstName} ${t.partner.lastName}</span>
-              <span class="thread-time">${API.timeAgo(t.lastMessageAt)}</span>
+    // Render thread items with dynamic active class check
+    scrollContainer.innerHTML = res.threads.map((t) => {
+      const isActive = t.listingId === activeListingId && t.partner._id === activePartnerId;
+      return `
+        <div class="thread-item ${isActive ? 'active' : ''}" onclick="selectThread('${t.listingId}', '${t.partner._id}')">
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <div class="thread-avatar-wrap">
+              <img class="thread-avatar" src="${API.userAvatar(t.partner)}" alt="${t.partner.firstName}"/>
+              <span class="online-dot online"></span>
             </div>
-            <p class="thread-preview">${t.lastMessage}</p>
-            <div class="thread-listing-chip"><span class="material-symbols-outlined" style="font-size:12px; color:var(--primary);">inventory_2</span> ${t.listing.title}</div>
+            <div class="thread-body">
+              <div style="display:flex; justify-space-between; margin-bottom:2px;">
+                <span class="thread-name">${t.partner.firstName} ${t.partner.lastName}</span>
+                <span class="thread-time">${API.timeAgo(t.lastMessageAt)}</span>
+              </div>
+              <p class="thread-preview">${t.lastMessage}</p>
+              <div class="thread-listing-chip"><span class="material-symbols-outlined" style="font-size:12px; color:var(--primary);">inventory_2</span> ${t.listing.title}</div>
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
-    // Check query params for specific listing and partner
-    const urlParams = new URLSearchParams(window.location.search);
-    const qListing = urlParams.get('listing');
-    const qUser = urlParams.get('user');
+    // ONLY select query parameters once on initial page load
+    if (isInitialLoad) {
+      isInitialLoad = false;
+      const urlParams = new URLSearchParams(window.location.search);
+      const qListing = urlParams.get('listing');
+      const qUser = urlParams.get('user');
 
-    if (qListing && qUser) {
-      selectThread(qListing, qUser);
-    } else if (res.threads[0]) {
-      selectThread(res.threads[0].listingId, res.threads[0].partner._id);
+      if (qListing && qUser) {
+        selectThread(qListing, qUser);
+      } else if (res.threads[0]) {
+        selectThread(res.threads[0].listingId, res.threads[0].partner._id);
+      }
+      // Clean query parameters from address bar so manual re-selection is never overridden
+      if (qListing || qUser) {
+        window.history.replaceState({}, '', 'messages.html');
+      }
     }
   }
 }
@@ -392,6 +404,13 @@ async function loadThreads() {
 async function selectThread(listingId, partnerId, forceScroll = false) {
   activeListingId = listingId;
   activePartnerId = partnerId;
+
+  // Update sidebar active highlights
+  document.querySelectorAll('.thread-item').forEach(el => {
+    const onclickStr = el.getAttribute('onclick') || '';
+    const isClicked = onclickStr.includes(listingId) && onclickStr.includes(partnerId);
+    el.classList.toggle('active', !!isClicked);
+  });
 
   // Hide thread list on mobile
   if (window.innerWidth <= 767) {

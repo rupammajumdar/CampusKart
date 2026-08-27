@@ -249,6 +249,72 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// ─── POST /api/auth/google ───────────────────────────────────────────────────
+// Google OAuth Sign In & Auto Registration
+router.post('/google', async (req, res) => {
+  try {
+    const { credential, email, name, picture } = req.body;
+
+    let userEmail = email ? email.trim().toLowerCase() : null;
+    let firstName = 'Student';
+    let lastName = 'User';
+    let profilePhoto = picture || '';
+
+    // If Google credential JWT is provided
+    if (credential) {
+      try {
+        const decoded = jwt.decode(credential);
+        if (decoded && decoded.email) {
+          userEmail = decoded.email.trim().toLowerCase();
+          firstName = decoded.given_name || decoded.name?.split(' ')[0] || 'Student';
+          lastName = decoded.family_name || decoded.name?.split(' ').slice(1).join(' ') || 'User';
+          profilePhoto = decoded.picture || profilePhoto;
+        }
+      } catch (e) {
+        console.error('Failed to decode Google JWT token:', e);
+      }
+    } else if (name) {
+      const parts = name.trim().split(' ');
+      firstName = parts[0] || 'Student';
+      lastName = parts.slice(1).join(' ') || 'User';
+    }
+
+    if (!userEmail || !/^\S+@\S+\.\S+$/.test(userEmail)) {
+      return res.status(400).json({ error: 'Valid email address is required for Google Sign In' });
+    }
+
+    let user = await User.findOne({ email: userEmail });
+
+    if (!user) {
+      user = await User.create({
+        firstName,
+        lastName,
+        email: userEmail,
+        branch: 'CSE',
+        year: '2nd Year',
+        profilePhoto,
+        isVerified: true,
+        isLister: true,
+      });
+    }
+
+    if (user.isBanned) {
+      return res.status(403).json({ error: 'Your account has been suspended' });
+    }
+
+    if (profilePhoto && !user.profilePhoto) {
+      user.profilePhoto = profilePhoto;
+      await user.save();
+    }
+
+    const token = generateJWT(user._id);
+    res.json({ token, user: user.toPublicJSON() });
+  } catch (err) {
+    console.error('Google auth error:', err);
+    res.status(500).json({ error: 'Google authentication failed' });
+  }
+});
+
 // ─── POST /api/auth/magic-link ────────────────────────────────────────────────
 router.post('/magic-link', async (req, res) => {
   try {

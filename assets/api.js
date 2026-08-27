@@ -105,6 +105,7 @@ const API = (() => {
   const auth = {
     register: (data) => post('/auth/register', data),
     login: (email, password) => post('/auth/login', { email, password }),
+    googleLogin: (payload) => post('/auth/google', payload),
     resendVerification: (email) => post('/auth/resend-verification', { email }),
     magicLink: (email) => post('/auth/magic-link', { email }),
     forgotPassword: (email) => post('/auth/forgot-password', { email }),
