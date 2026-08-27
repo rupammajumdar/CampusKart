@@ -8,8 +8,35 @@ const STORE_QUALITY = 78;      // JPEG/webp quality for stored photos
 const DEFAULT_THUMB = 400;     // default longest edge for list-card images
 
 /**
+ * ImageKit / Cloudinary / ImgBB CDN Upload integration.
+ * If IMAGEKIT_PRIVATE_KEY is set in .env, photo uploads are pushed directly
+ * to ImageKit CDN, saving high-speed CDN URLs (https://ik.imagekit.io/...) to MongoDB.
+ */
+async function uploadToCDN(buf, fileName) {
+  if (process.env.IMAGEKIT_PRIVATE_KEY && process.env.IMAGEKIT_PUBLIC_KEY) {
+    try {
+      const ImageKit = require('@imagekit/nodejs');
+      const ik = new ImageKit({
+        publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+        privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+        urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/campuskart'
+      });
+      const res = await ik.upload({
+        file: buf,
+        fileName: fileName || `item_${Date.now()}.jpg`,
+        folder: '/campuskart'
+      });
+      if (res && res.url) return res.url;
+    } catch (e) {
+      console.error('ImageKit upload error:', e.message);
+    }
+  }
+  return null;
+}
+
+/**
  * Convert a Multer file (memory storage -> f.buffer / disk -> f.path) into a
- * compressed data URL. Returns { url, mime, bytes } or null.
+ * compressed data URL or ImageKit CDN URL. Returns { url, mime, bytes } or null.
  */
 async function fileToCompressedDataUrl(file) {
   let buf = Buffer.isBuffer(file.buffer) ? file.buffer : null;
@@ -18,6 +45,13 @@ async function fileToCompressedDataUrl(file) {
     buf = await fs.promises.readFile(file.path);
   }
   if (!buf) return null;
+
+  // Try ImageKit CDN first if keys are in .env
+  const cdnUrl = await uploadToCDN(buf, file.originalname);
+  if (cdnUrl) {
+    return { url: cdnUrl, mime: 'image/jpeg', bytes: buf.length };
+  }
+
   return compressBufferToDataUrl(buf, file.mimetype || 'image/jpeg');
 }
 
