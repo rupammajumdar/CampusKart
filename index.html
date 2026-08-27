@@ -487,7 +487,7 @@
     const modal = document.getElementById('google-auth-modal');
     if (modal) modal.classList.remove('open');
 
-    API.toast('Signing in with Google…', 'info');
+    API.toast('Signing in…', 'info');
     const res = await API.auth.googleLogin({ email, name: name || email.split('@')[0] });
     if (res.ok && res.token && res.user) {
       API.setToken(res.token);
@@ -495,8 +495,11 @@
       API.toast('Welcome, ' + res.user.firstName + '!', 'success');
       const targetPage = res.user.role === 'admin' ? 'admin.html' : 'home.html';
       setTimeout(() => window.location.href = targetPage, 500);
+    } else if (res.requireEmailVerification || res.message) {
+      API.toast(res.message || 'Verification link sent to your email inbox.', 'info');
+      showVerificationAlert(email);
     } else {
-      API.toast(res.error || 'Google sign-in failed', 'error');
+      API.toast(res.error || 'Authentication failed. Please check credentials or sign up.', 'error');
     }
   }
 

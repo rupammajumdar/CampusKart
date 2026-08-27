@@ -255,12 +255,13 @@ router.post('/google', async (req, res) => {
   try {
     const { credential, email, name, picture, branch, year } = req.body;
 
-    let userEmail = email ? email.trim().toLowerCase() : null;
+    let userEmail = null;
     let firstName = 'Student';
     let lastName = 'User';
     let profilePhoto = picture || '';
+    let isVerifiedGoogleAuth = false;
 
-    // If Google credential JWT is provided
+    // 1) Real Google OAuth JWT Token from Google GIS SDK
     if (credential) {
       try {
         const decoded = jwt.decode(credential);
@@ -269,20 +270,47 @@ router.post('/google', async (req, res) => {
           firstName = decoded.given_name || decoded.name?.split(' ')[0] || 'Student';
           lastName = decoded.family_name || decoded.name?.split(' ').slice(1).join(' ') || 'User';
           profilePhoto = decoded.picture || profilePhoto;
+          isVerifiedGoogleAuth = true;
         }
       } catch (e) {
         console.error('Failed to decode Google JWT token:', e);
       }
-    } else if (name) {
-      const parts = name.trim().split(' ');
-      firstName = parts[0] || 'Student';
-      lastName = parts.slice(1).join(' ') || 'User';
     }
 
-    if (!userEmail || !/^\S+@\S+\.\S+$/.test(userEmail)) {
-      return res.status(400).json({ error: 'Valid email address is required for Google Sign In' });
+    // 2) If NO Google OAuth token is provided (manual email entry):
+    // Security check: Send magic link to user's real email inbox to verify ownership!
+    if (!isVerifiedGoogleAuth) {
+      const targetEmail = email ? email.trim().toLowerCase() : null;
+      if (!targetEmail || !/^\S+@\S+\.\S+$/.test(targetEmail)) {
+        return res.status(400).json({ error: 'Please sign in with Google or enter a valid email address.' });
+      }
+
+      let user = await User.findOne({ email: targetEmail });
+      if (!user) {
+        return res.status(401).json({
+          error: 'Account not found. Please sign up with password or use Google Sign-In.',
+        });
+      }
+
+      if (user.isBanned) {
+        return res.status(403).json({ error: 'Your account has been suspended' });
+      }
+
+      // Send verification link to user's actual email inbox
+      const token = uuidv4();
+      user.magicToken = token;
+      user.magicTokenExpires = new Date(Date.now() + TOKEN_EXPIRY_MS);
+      await user.save();
+
+      await sendMagicLinkEmail(user, token).catch(console.error);
+
+      return res.json({
+        requireEmailVerification: true,
+        message: `A verification link has been sent to ${targetEmail}. Please check your inbox to sign in.`,
+      });
     }
 
+    // 3) Verified Google OAuth Token Flow
     let user = await User.findOne({ email: userEmail });
 
     if (!user) {
@@ -297,7 +325,6 @@ router.post('/google', async (req, res) => {
         isLister: true,
       });
     } else {
-      // Auto-verify existing account if signing in via Google
       let updated = false;
       if (!user.isVerified) { user.isVerified = true; updated = true; }
       if (!user.isLister) { user.isLister = true; updated = true; }
