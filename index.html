@@ -11,7 +11,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="assets/style.css"/>
   <script src="assets/api.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     body { display: flex; min-height: 100vh; padding: 0; background: var(--surface); }
     .login-split { display: flex; width: 100%; min-height: 100vh; }
@@ -496,9 +495,10 @@
   }
 
   window.addEventListener('load', function () {
-    if (window.google && window.google.accounts && window.google.accounts.id) {
+    // Only initialize Google GIS if a real valid GOOGLE_CLIENT_ID is provided by developer
+    if (window.GOOGLE_CLIENT_ID && window.GOOGLE_CLIENT_ID.endsWith('.apps.googleusercontent.com') && window.google && window.google.accounts) {
       window.google.accounts.id.initialize({
-        client_id: '1082736192834-exampleclientid.apps.googleusercontent.com',
+        client_id: window.GOOGLE_CLIENT_ID,
         callback: handleGoogleCallback,
         auto_select: false,
       });
