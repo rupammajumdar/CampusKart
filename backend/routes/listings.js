@@ -53,7 +53,6 @@ router.get('/stats', async (req, res) => {
 
 // ─── GET /api/listings — browse/search/filter ─────────────────────────────────
 router.get('/', async (req, res) => {
-  console.log('📥 GET /api/listings handler called with query:', req.query);
   try {
     const {
       q,           // text search
@@ -119,7 +118,6 @@ router.get('/', async (req, res) => {
     ]);
 
     const slimmed = slimListingsWithThumbs(listings);
-    console.log('🚀 Slimmed listings ready, sending JSON response');
 
     res.json({
       listings: slimmed,
@@ -205,29 +203,61 @@ router.get('/seller/my', authMiddleware(), async (req, res) => {
 });
 
 // ─── GET /api/listings/thumb/:id/:index — lightweight photo thumbnail ──────────
-// Serves a small JPEG resized on the fly from the stored photo. Responses are
-// cached aggressively by the CDN so list pages stay fast once warmed.
-router.get('/thumb/:id/:index', async (req, res) => {
-  const index = Number(req.params.index) || 0;
-  try {
-    const listing = await Listing.findById(req.params.id)
-      .slice('photos', [index, 1])
-      .select('photos')
-      .lean();
+// Uses the native MongoDB driver with $slice projection so only ONE photo
+// crosses the wire (not the whole 5 MB document).  Results are cached in-memory
+// so subsequent requests never hit the database.
+const mongoose = require('mongoose');
+const thumbCache = new Map();           // key = "id:index", value = { mime, buf }
+const THUMB_CACHE_MAX = 200;
 
-    if (!listing || !Array.isArray(listing.photos) || !listing.photos[0]) {
+router.get('/thumb/:id/:index', async (req, res) => {
+  const { id } = req.params;
+  const index = Number(req.params.index) || 0;
+  const cacheKey = `${id}:${index}`;
+
+  // 1) Serve from cache if available
+  if (thumbCache.has(cacheKey)) {
+    const { mime, buf } = thumbCache.get(cacheKey);
+    res.set('Content-Type', mime);
+    res.set('Cache-Control', 'public, max-age=604800, immutable');
+    return res.send(buf);
+  }
+
+  try {
+    // 2) Native driver — only fetch photos[index] via $slice projection
+    const { ObjectId } = mongoose.Types;
+    let oid;
+    try { oid = new ObjectId(id); } catch { return res.status(400).json({ error: 'Invalid id' }); }
+
+    const doc = await mongoose.connection.db
+      .collection('listings')
+      .findOne(
+        { _id: oid },
+        { projection: { photos: { $slice: [index, 1] } } }
+      );
+
+    if (!doc || !Array.isArray(doc.photos) || !doc.photos[0]) {
       return res.status(404).json({ error: 'Image not found' });
     }
 
-    const photo = listing.photos[0];
+    const photo = doc.photos[0];
+
     if (photo.startsWith('data:')) {
       const commaIdx = photo.indexOf(',');
       const mimeMatch = /^data:([^;,]+)/.exec(photo);
       const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-      const imgBuf = Buffer.from(photo.slice(commaIdx + 1), 'base64');
+      const buf = Buffer.from(photo.slice(commaIdx + 1), 'base64');
+
+      // 3) Store in cache (evict oldest if full)
+      if (thumbCache.size >= THUMB_CACHE_MAX) {
+        const oldest = thumbCache.keys().next().value;
+        thumbCache.delete(oldest);
+      }
+      thumbCache.set(cacheKey, { mime, buf });
+
       res.set('Content-Type', mime);
       res.set('Cache-Control', 'public, max-age=604800, immutable');
-      return res.send(imgBuf);
+      return res.send(buf);
     } else if (photo.startsWith('/uploads/')) {
       const fs = require('fs');
       const path = require('path');
