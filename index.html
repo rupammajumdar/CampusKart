@@ -465,9 +465,12 @@
   function promptGoogleSignIn() {
     const modal = document.getElementById('google-auth-modal');
     if (modal) {
+      const mainEmail = (document.getElementById('signin-email')?.value || document.getElementById('su-email')?.value || '').trim();
+      const gInput = document.getElementById('g-email');
+      if (gInput && mainEmail && !gInput.value) gInput.value = mainEmail;
+
       modal.classList.add('open');
-      const input = document.getElementById('g-email');
-      if (input) setTimeout(() => input.focus(), 150);
+      if (gInput) setTimeout(() => gInput.focus(), 150);
     }
   }
 
@@ -481,14 +484,17 @@
       return;
     }
 
+    const modal = document.getElementById('google-auth-modal');
+    if (modal) modal.classList.remove('open');
+
     API.toast('Signing in with Google…', 'info');
     const res = await API.auth.googleLogin({ email, name: name || email.split('@')[0] });
-    if (res.ok && res.token) {
+    if (res.ok && res.token && res.user) {
       API.setToken(res.token);
       API.setUser(res.user);
       API.toast('Welcome, ' + res.user.firstName + '!', 'success');
       const targetPage = res.user.role === 'admin' ? 'admin.html' : 'home.html';
-      setTimeout(() => window.location.href = targetPage, 800);
+      setTimeout(() => window.location.href = targetPage, 500);
     } else {
       API.toast(res.error || 'Google sign-in failed', 'error');
     }
