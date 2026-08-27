@@ -110,8 +110,9 @@ router.get('/', async (req, res) => {
         .sort(sortOpt)
         .skip(skip)
         .limit(Number(limit))
-        // Exclude heavy photos field so MongoDB JSON response returns in <100ms
-        .select('title category condition listingType price rentalRate rentalDuration seller status createdAt views tags')
+        // Fetch primary photo only to keep payload ultra-lean and instant
+        .select('title category condition listingType price rentalRate rentalDuration photos seller status createdAt views tags')
+        .slice('photos', 1)
         .populate('seller', 'firstName lastName branch year isVerified rating')
         .lean(),
       Listing.countDocuments(filter),

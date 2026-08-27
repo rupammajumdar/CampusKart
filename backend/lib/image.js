@@ -124,8 +124,13 @@ function thumbnailUrl(listingId, index = 0, width = DEFAULT_THUMB) {
  */
 function slimListingsWithThumbs(listings) {
   for (const l of listings) {
-    l.thumbUrl = `/api/listings/thumb/${l._id}/0`;
-    l.photos = [`/api/listings/thumb/${l._id}/0`];
+    const hasPhoto = Array.isArray(l.photos) && l.photos.length > 0 && l.photos[0];
+    if (hasPhoto) {
+      l.thumbUrl = l.photos[0];
+    } else {
+      l.thumbUrl = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='100%25' height='100%25' fill='%23f1f3f4'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235f6368' font-family='sans-serif' font-size='14'%3ECampusKart Item%3C/text%3E%3C/svg%3E`;
+    }
+    l.photos = [];
   }
   return listings;
 }
