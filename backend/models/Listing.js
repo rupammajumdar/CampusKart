@@ -59,12 +59,14 @@ const listingSchema = new mongoose.Schema(
 
 // Full text search index
 listingSchema.index({ title: 'text', description: 'text', tags: 'text' });
-// Filter indexes
-listingSchema.index({ category: 1, status: 1 });
-listingSchema.index({ seller: 1 });
-listingSchema.index({ status: 1, createdAt: -1 });
-listingSchema.index({ price: 1 });
-listingSchema.index({ listingType: 1 });
-listingSchema.index({ condition: 1 });
+
+// ── Compound indexes optimised for browse/filter queries ────────────────────
+// The most common query is: { status: 'live' } sorted by createdAt DESC
+listingSchema.index({ status: 1, createdAt: -1 });  // default browse
+listingSchema.index({ status: 1, category: 1, createdAt: -1 }); // category filter
+listingSchema.index({ status: 1, listingType: 1, createdAt: -1 }); // type filter
+listingSchema.index({ status: 1, price: 1 });        // price sort/filter
+listingSchema.index({ status: 1, views: -1 });        // popular sort
+listingSchema.index({ seller: 1, createdAt: -1 });   // seller's listings
 
 module.exports = mongoose.model('Listing', listingSchema);

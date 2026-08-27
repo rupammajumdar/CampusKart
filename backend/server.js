@@ -63,7 +63,19 @@ app.use('/uploads', express.static(uploadsDir));
 // ─── Ensure DB connected before API requests (Vercel serverless) ───────────
 let dbReady = connectDB();
 app.use('/api', async (req, res, next) => {
-  try { await dbReady; next(); } catch { res.status(503).json({ error: 'Database unavailable' }); }
+  try {
+    await dbReady;
+    next();
+  } catch {
+    // Re-try connection once in case of a transient error
+    try {
+      dbReady = connectDB();
+      await dbReady;
+      next();
+    } catch {
+      res.status(503).json({ error: 'Database unavailable — please try again shortly' });
+    }
+  }
 });
 
 // ─── API routes ───────────────────────────────────────────────────────────────

@@ -81,9 +81,14 @@ async function connectDB() {
 
   try {
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 15000,
-      connectTimeoutMS: 15000,
-      family: 4,
+      serverSelectionTimeoutMS: 8000,   // fail fast instead of hanging 15s
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,                   // allow up to 10 parallel operations
+      minPoolSize: 2,                    // keep warm connections ready
+      family: 4,                         // IPv4 — avoids Windows DNS delay
+      heartbeatFrequencyMS: 10000,
+      retryWrites: true,
     });
     isConnected = true;
     console.log(`✅ MongoDB Atlas connected: ${mongoose.connection.host}`);

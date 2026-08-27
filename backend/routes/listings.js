@@ -15,6 +15,7 @@ const {
   fileToCompressedDataUrl,
   makeThumbnail,
   slimListings,
+  slimListingsWithThumbs,
   DEFAULT_THUMB,
 } = require('../lib/image');
 
@@ -102,13 +103,18 @@ router.get('/', async (req, res) => {
         .sort(sortOpt)
         .skip(skip)
         .limit(Number(limit))
-        .populate('seller', 'firstName lastName branch year isVerified rating profilePhoto')
+        // Only fetch the fields the browse grid needs — skip heavy fields
+        .select('title category condition listingType price rentalRate rentalDuration photos seller status createdAt views tags')
+        .populate('seller', 'firstName lastName branch year isVerified rating')
         .lean(),
       Listing.countDocuments(filter),
     ]);
 
+    // Generate inline thumbnails in parallel (no extra HTTP round-trips for browser)
+    const slimmed = await slimListingsWithThumbs(listings);
+
     res.json({
-      listings: slimListings(listings),
+      listings: slimmed,
       total,
       page: Number(page),
       pages: Math.ceil(total / Number(limit)),

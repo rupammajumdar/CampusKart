@@ -63,6 +63,23 @@
     .price-inputs input { flex:1; }
     .load-more-wrap { display:flex; justify-content:center; padding: 32px 0; }
     footer.footer { margin-top: 40px; }
+
+    /* ── Skeleton loading ────────────────────────────────────── */
+    .skeleton-card { background:var(--surface-container); border-radius:var(--radius-lg); overflow:hidden; }
+    .skeleton-img  { width:100%; aspect-ratio:4/3; background:var(--surface-container-high); position:relative; overflow:hidden; }
+    .skeleton-body { padding:12px; }
+    .skeleton-line { height:12px; border-radius:6px; background:var(--surface-container-high); margin-bottom:8px; }
+    .skeleton-line.short { width:55%; }
+    .skeleton-line.price { width:40%; height:14px; }
+    /* shimmer animation */
+    @keyframes shimmer { from{transform:translateX(-100%)} to{transform:translateX(100%)} }
+    .skeleton-img::after, .skeleton-line::after {
+      content:'';
+      position:absolute; inset:0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.07) 50%, transparent 100%);
+      animation: shimmer 1.4s infinite;
+    }
+    .skeleton-line { position:relative; overflow:hidden; }
   </style>
 </head>
 <body class="page-wrapper">
@@ -230,11 +247,16 @@
 <div id="toast-container"></div>
 
 <script>
-  API.checkUrlToken();
+  // ── Debounce helper ─────────────────────────────────────────────────
+  function debounce(fn, ms) {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+  }
 
   let currentPage = 1;
   let activeCat = 'all';
   let activeType = 'all';
+  let _loading = false;  // guard against concurrent fetches
 
   const categoryMap = {
     lab: 'Lab Equipment',
@@ -244,9 +266,33 @@
     other: 'Other'
   };
 
+  // ── Build skeleton HTML ─────────────────────────────────────────────
+  function skeletonCards(n = 8) {
+    return Array.from({length: n}, () => `
+      <div class="skeleton-card">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line price"></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
   async function fetchBrowseListings() {
-    const grid = document.getElementById('listings-grid') || document.getElementById('browse-grid');
+    if (_loading && currentPage === 1) return;
+    _loading = true;
+
+    const grid = document.getElementById('listings-grid');
     if (!grid) return;
+
+    // Show skeletons immediately on first page load
+    if (currentPage === 1) {
+      grid.innerHTML = skeletonCards(8);
+      document.getElementById('load-more-wrap').style.display = 'none';
+    }
+
     const searchInput = document.getElementById('search-input');
     const q = searchInput ? searchInput.value.trim() : '';
 
@@ -265,6 +311,7 @@
     if (maxPrice) params.maxPrice = maxPrice;
 
     const res = await API.listings.browse(params);
+    _loading = false;
 
     if (res.ok) {
       if (!res.listings || res.listings.length === 0) {
@@ -285,25 +332,29 @@
       const rc = document.getElementById('result-count');
       if (rc) rc.textContent = `Showing ${res.listings.length} of ${res.total} listings`;
 
-      const cardsHtml = res.listings.map(item => `
-        <a href="item.html?id=${item._id}" class="card listing-card">
-          <div class="listing-card__image">
-            <img src="${API.listingPhoto(item)}" alt="${item.title}" loading="lazy" decoding="async"/>
-            <button class="listing-card__wishlist" onclick="event.preventDefault(); toggleWishlist(this, '${item._id}')" title="Save to wishlist">
-              <span class="material-symbols-outlined icon-fill" style="font-size:18px;">favorite</span>
-            </button>
-            <span class="listing-card__type-badge badge badge-${item.listingType === 'rent' ? 'rent' : 'sell'}">${item.listingType === 'rent' ? 'Rent' : 'Buy'}</span>
-          </div>
-          <div class="listing-card__body">
-            <h3 class="listing-card__title">${item.title}</h3>
-            <div class="listing-card__price">${API.formatPrice(item)}</div>
-            <div class="listing-card__meta">
-              <span class="font-label" style="color:var(--on-surface-variant); text-transform:uppercase; font-size:10px;">${item.category}</span>
-              <span class="badge badge-condition-new badge-pill font-label" style="font-size:10px;">${item.condition}</span>
+      // Use inline thumbUrl (already embedded in API response — no extra HTTP call needed)
+      const cardsHtml = res.listings.map(item => {
+        const imgSrc = item.thumbUrl || API.listingPhoto(item);
+        return `
+          <a href="item.html?id=${item._id}" class="card listing-card">
+            <div class="listing-card__image">
+              <img src="${imgSrc}" alt="${item.title}" loading="lazy" decoding="async"/>
+              <button class="listing-card__wishlist" onclick="event.preventDefault(); toggleWishlist(this, '${item._id}')" title="Save to wishlist">
+                <span class="material-symbols-outlined icon-fill" style="font-size:18px;">favorite</span>
+              </button>
+              <span class="listing-card__type-badge badge badge-${item.listingType === 'rent' ? 'rent' : 'sell'}">${item.listingType === 'rent' ? 'Rent' : 'Buy'}</span>
             </div>
-          </div>
-        </a>
-      `).join('');
+            <div class="listing-card__body">
+              <h3 class="listing-card__title">${item.title}</h3>
+              <div class="listing-card__price">${API.formatPrice(item)}</div>
+              <div class="listing-card__meta">
+                <span class="font-label" style="color:var(--on-surface-variant); text-transform:uppercase; font-size:10px;">${item.category}</span>
+                <span class="badge badge-condition-new badge-pill font-label" style="font-size:10px;">${item.condition}</span>
+              </div>
+            </div>
+          </a>
+        `;
+      }).join('');
 
       if (currentPage === 1) {
         grid.innerHTML = cardsHtml;
@@ -311,9 +362,19 @@
         grid.insertAdjacentHTML('beforeend', cardsHtml);
       }
 
-      const loadMoreBtn = document.getElementById('load-more-wrap') || document.getElementById('load-more-btn');
+      const loadMoreBtn = document.getElementById('load-more-wrap');
       if (loadMoreBtn) {
         loadMoreBtn.style.display = currentPage < res.pages ? 'flex' : 'none';
+      }
+    } else {
+      // Error state
+      if (currentPage === 1) {
+        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:48px 0; color:var(--on-surface-variant);">
+          <span class="material-symbols-outlined" style="font-size:48px; color:var(--outline);">wifi_off</span>
+          <h3 style="margin:12px 0 6px;">Could not load listings</h3>
+          <p style="margin-bottom:16px;">Check your connection or try again.</p>
+          <button class="btn btn-primary" onclick="applyFilters()">Retry</button>
+        </div>`;
       }
     }
   }
@@ -369,6 +430,14 @@
     }
   }
 
+  API.checkUrlToken();
+
+  // Debounced live search (wait 400ms after user stops typing)
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', debounce(applyFilters, 400));
+  }
+
   // Init from URL params
   const urlParams = new URLSearchParams(location.search);
   if (urlParams.get('cat')) {
@@ -376,7 +445,6 @@
     if (catBtn) selectCat(catBtn);
   }
   if (urlParams.get('q')) {
-    const searchInput = document.getElementById('search-input');
     if (searchInput) searchInput.value = urlParams.get('q');
   }
 
