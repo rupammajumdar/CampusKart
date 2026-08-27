@@ -11,6 +11,12 @@ const {
   sendInterestNotificationEmail,
   sendItemReservedEmail,
 } = require('../lib/email');
+const {
+  fileToCompressedDataUrl,
+  makeThumbnail,
+  slimListings,
+  DEFAULT_THUMB,
+} = require('../lib/image');
 
 // ─── GET /api/listings/stats — public realtime marketplace statistics ──────────
 router.get('/stats', async (req, res) => {
@@ -102,7 +108,7 @@ router.get('/', async (req, res) => {
     ]);
 
     res.json({
-      listings,
+      listings: slimListings(listings),
       total,
       page: Number(page),
       pages: Math.ceil(total / Number(limit)),
@@ -132,12 +138,11 @@ router.post(
         return res.status(400).json({ error: 'Missing required listing fields' });
       }
 
-      const photos = (req.files || []).map((f) => {
-        if (f.buffer) {
-          return `data:${f.mimetype};base64,${f.buffer.toString('base64')}`;
-        }
-        return `/uploads/${f.filename}`;
-      });
+      const photos = [];
+      for (const f of req.files || []) {
+        const compressed = await fileToCompressedDataUrl(f);
+        if (compressed) photos.push(compressed.url);
+      }
 
       const listing = await Listing.create({
         seller: req.user._id,
@@ -179,9 +184,33 @@ router.get('/seller/my', authMiddleware(), async (req, res) => {
       .populate('reservedFor', 'firstName lastName branch year')
       .lean();
 
-    res.json({ listings });
+    res.json({ listings: slimListings(listings) });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch your listings' });
+  }
+});
+
+// ─── GET /api/listings/thumb/:id/:index — lightweight photo thumbnail ──────────
+// Serves a small JPEG resized on the fly from the stored photo. Responses are
+// cached aggressively by the CDN so list pages stay fast once warmed.
+router.get('/thumb/:id/:index', async (req, res) => {
+  const index = Number(req.params.index) || 0;
+  const width = Number(req.query.w) || DEFAULT_THUMB;
+  try {
+    const listing = await Listing.findById(req.params.id).select('photos').lean();
+    if (!listing || !Array.isArray(listing.photos) || !listing.photos[index]) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+    const thumb = await makeThumbnail(listing.photos[index], width);
+    if (!thumb) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+    res.set('Content-Type', 'image/jpeg');
+    res.set('Cache-Control', 'public, max-age=604800, immutable');
+    res.send(thumb);
+  } catch (err) {
+    console.error('Thumbnail error:', err);
+    res.status(500).json({ error: 'Failed to generate thumbnail' });
   }
 });
 
@@ -250,13 +279,11 @@ router.put('/:id', authMiddleware(), requireVerified, upload.array('photos', 5),
 
     // New photos
     if (req.files && req.files.length > 0) {
-      const newPhotos = req.files.map((f) => {
-        if (f.buffer) {
-          return `data:${f.mimetype};base64,${f.buffer.toString('base64')}`;
-        }
-        return `/uploads/${f.filename}`;
-      });
-      listing.photos = [...listing.photos, ...newPhotos].slice(0, 5);
+      for (const f of req.files || []) {
+        const compressed = await fileToCompressedDataUrl(f);
+        if (compressed) listing.photos.push(compressed.url);
+      }
+      if (listing.photos.length > 5) listing.photos = listing.photos.slice(0, 5);
     }
 
     // Owner editing a rejected listing — re-submit for review

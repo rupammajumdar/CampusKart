@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
 
@@ -34,8 +35,19 @@ app.use(cors({
   credentials: true,
 }));
 
+// Enable gzip compression for all responses
+app.use(compression());
+
 // Enable ETag for conditional requests (304 responses)
 app.set('etag', 'strong');
+
+// Cache public API responses for better performance
+app.use('/api/listings', (req, res, next) => {
+  if (req.method === 'GET') {
+    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+  }
+  next();
+});
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

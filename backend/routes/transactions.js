@@ -4,6 +4,7 @@ const Transaction = require('../models/Transaction');
 const User = require('../models/User');
 const Listing = require('../models/Listing');
 const { authMiddleware } = require('../middleware/auth');
+const { slimListings } = require('../lib/image');
 
 // ─── GET /api/transactions — my transaction history ───────────────────────────
 router.get('/', authMiddleware(), async (req, res) => {
@@ -24,6 +25,10 @@ router.get('/', authMiddleware(), async (req, res) => {
       .populate('buyer', 'firstName lastName branch year profilePhoto rating')
       .populate('seller', 'firstName lastName branch year profilePhoto rating')
       .lean();
+
+    for (const t of transactions) {
+      if (t.listing) slimListings([t.listing]);
+    }
 
     res.json({ transactions });
   } catch (err) {
@@ -47,6 +52,8 @@ router.get('/:id', authMiddleware(), async (req, res) => {
     if (txn.buyer._id.toString() !== userId && txn.seller._id.toString() !== userId && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden' });
     }
+
+    if (txn.listing) slimListings([txn.listing]);
 
     res.json({ transaction: txn });
   } catch (err) {

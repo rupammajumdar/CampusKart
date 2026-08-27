@@ -7,6 +7,7 @@ const Transaction = require('../models/Transaction');
 const Report = require('../models/Report');
 const { authMiddleware, requireAdmin } = require('../middleware/auth');
 const { sendListingApprovedEmail, sendListingRejectedEmail } = require('../lib/email');
+const { slimListings } = require('../lib/image');
 
 // All admin routes require auth + admin role
 router.use(authMiddleware(), requireAdmin);
@@ -26,6 +27,7 @@ router.get('/queue', async (req, res) => {
       Listing.countDocuments({ status: 'pending' }),
     ]);
 
+    slimListings(listings);
     res.json({ listings, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch moderation queue' });
@@ -130,6 +132,7 @@ router.get('/users/:id/listings', async (req, res) => {
       return res.status(400).json({ error: 'Invalid user ID' });
     }
     const listings = await Listing.find({ seller: req.params.id }).sort({ createdAt: -1 });
+    slimListings(listings);
     res.json({ listings });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch user listings' });
@@ -224,6 +227,10 @@ router.get('/reports', async (req, res) => {
         .populate('relatedTransaction'),
       Report.countDocuments(filter),
     ]);
+
+    for (const r of reports) {
+      if (r.targetListing) slimListings([r.targetListing]);
+    }
 
     res.json({ reports, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
   } catch (err) {

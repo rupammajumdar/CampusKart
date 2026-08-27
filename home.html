@@ -395,7 +395,7 @@
       grid.innerHTML = res.listings.map(item => `
         <a href="item.html?id=${item._id}" class="card listing-card">
           <div class="listing-card__image">
-            <img src="${API.listingPhoto(item)}" alt="${item.title}"/>
+            <img src="${API.listingPhoto(item)}" alt="${item.title}" loading="lazy" decoding="async"/>
             <button class="listing-card__wishlist" onclick="event.preventDefault(); toggleWishlist(this, '${item._id}')" title="Save to wishlist">
               <span class="material-symbols-outlined icon-fill" style="font-size:18px;">favorite</span>
             </button>

@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Listing = require('../models/Listing');
 const { authMiddleware } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
+const { slimListings } = require('../lib/image');
 const path = require('path');
 
 // ─── GET /api/users/me ────────────────────────────────────────────────────────
@@ -105,6 +106,7 @@ router.get('/me/wishlist', authMiddleware(), async (req, res) => {
       match: { status: { $in: ['live', 'reserved'] } },
       select: 'title category photos price rentalRate listingType status condition',
     });
+    slimListings(user.wishlist);
     res.json({ wishlist: user.wishlist });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch wishlist' });

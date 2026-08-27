@@ -62,5 +62,9 @@ listingSchema.index({ title: 'text', description: 'text', tags: 'text' });
 // Filter indexes
 listingSchema.index({ category: 1, status: 1 });
 listingSchema.index({ seller: 1 });
+listingSchema.index({ status: 1, createdAt: -1 });
+listingSchema.index({ price: 1 });
+listingSchema.index({ listingType: 1 });
+listingSchema.index({ condition: 1 });
 
 module.exports = mongoose.model('Listing', listingSchema);

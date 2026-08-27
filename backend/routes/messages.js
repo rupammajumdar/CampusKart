@@ -6,6 +6,7 @@ const Listing = require('../models/Listing');
 const User = require('../models/User');
 const { authMiddleware } = require('../middleware/auth');
 const { sendNewMessageEmail } = require('../lib/email');
+const { slimListings } = require('../lib/image');
 
 // ─── GET /api/messages — all threads for current user ────────────────────────
 router.get('/', authMiddleware(), async (req, res) => {
@@ -46,6 +47,8 @@ router.get('/', authMiddleware(), async (req, res) => {
       User.find({ _id: { $in: partnerIds } }).select('firstName lastName profilePhoto branch year').lean(),
     ]);
 
+    slimListings(listings);
+
     const listingMap = new Map(listings.map(l => [l._id.toString(), l]));
     const partnerMap = new Map(partners.map(p => [p._id.toString(), p]));
 
@@ -85,8 +88,8 @@ router.get('/:listingId/:otherId', authMiddleware(), async (req, res) => {
       return res.status(400).json({ error: 'Invalid parameters' });
     }
 
-    // 2 queries instead of 4: fetch messages + mark read in parallel with listing/other
-    const [messages, , listing, other] = await Promise.all([
+    // Fetch messages + mark read in parallel with listing/other user
+    const [messages, listingDoc, userDoc] = await Promise.all([
       Message.find({
         listing: listingId,
         $or: [
@@ -100,12 +103,13 @@ router.get('/:listingId/:otherId', authMiddleware(), async (req, res) => {
       Message.updateMany(
         { listing: listingId, sender: otherId, receiver: userId, isRead: false },
         { $set: { isRead: true } }
-      ),
-      Listing.findById(listingId).select('title photos status category listingType price rentalRate seller reservedFor').lean(),
+      ).then(() => Listing.findById(listingId).select('title photos status category listingType price rentalRate seller reservedFor').lean()),
       User.findById(otherId).select('firstName lastName profilePhoto branch year isVerified rating').lean(),
     ]);
 
-    res.json({ messages, listing, other });
+    const listing = listingDoc ? slimListings([listingDoc])[0] : null;
+
+    res.json({ messages, listing, other: userDoc });
   } catch (err) {
     console.error('Get thread error:', err);
     res.status(500).json({ error: 'Failed to fetch thread' });
