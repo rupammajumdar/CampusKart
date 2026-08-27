@@ -1,16 +1,12 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
 const dns = require('dns');
 
-// Fix for Windows DNS resolution issue with mongodb+srv:// (querySrv ECONNREFUSED)
-if (process.platform === 'win32') {
-  try {
-    dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
-  } catch (e) {
-    // Ignore if custom DNS fails
-  }
+// Fix Node 17+ / Node 24 Windows IPv6 preference issue with MongoDB Atlas
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first');
 }
 
+const mongoose = require('mongoose');
 let isConnected = false;
 let seeded = false;
 
@@ -77,17 +73,16 @@ async function seedDemoAccounts() {
 async function connectDB() {
   if (isConnected && mongoose.connection.readyState === 1) return;
 
-  const uri = process.env.MONGODB_URI || 'mongodb+srv://utpalmajumdar6_db_user:rQTbZeNjpOAptfO0@cluster0.zee69ax.mongodb.net/campuskart';
+  const uri = process.env.MONGODB_URI || 'mongodb://utpalmajumdar6_db_user:rQTbZeNjpOAptfO0@ac-54gggn9-shard-00-00.zee69ax.mongodb.net:27017,ac-54gggn9-shard-00-01.zee69ax.mongodb.net:27017,ac-54gggn9-shard-00-02.zee69ax.mongodb.net:27017/campuskart?ssl=true&replicaSet=atlas-wulgso-shard-0&authSource=admin&retryWrites=true&w=majority';
 
   try {
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 8000,   // fail fast instead of hanging 15s
-      connectTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 15000,
+      connectTimeoutMS: 15000,
       socketTimeoutMS: 45000,
-      maxPoolSize: 10,                   // allow up to 10 parallel operations
-      minPoolSize: 2,                    // keep warm connections ready
-      family: 4,                         // IPv4 — avoids Windows DNS delay
-      heartbeatFrequencyMS: 10000,
+      maxPoolSize: 10,
+      minPoolSize: 1,
+      autoIndex: false,
       retryWrites: true,
     });
     isConnected = true;

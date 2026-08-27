@@ -298,6 +298,7 @@
 
     const minPrice = document.getElementById('price-min')?.value;
     const maxPrice = document.getElementById('price-max')?.value;
+    const sortVal = document.getElementById('sort-select')?.value;
 
     const params = {
       page: currentPage,
@@ -309,6 +310,13 @@
     if (activeType !== 'all') params.type = activeType;
     if (minPrice) params.minPrice = minPrice;
     if (maxPrice) params.maxPrice = maxPrice;
+    if (sortVal) params.sort = sortVal;
+
+    const conds = [];
+    if (document.getElementById('cond-new')?.checked) conds.push('New', 'Like New');
+    if (document.getElementById('cond-good')?.checked) conds.push('Good');
+    if (document.getElementById('cond-fair')?.checked) conds.push('Fair');
+    if (conds.length > 0) params.condition = conds.join(',');
 
     const res = await API.listings.browse(params);
     _loading = false;

@@ -53,6 +53,7 @@ router.get('/stats', async (req, res) => {
 
 // ─── GET /api/listings — browse/search/filter ─────────────────────────────────
 router.get('/', async (req, res) => {
+  console.log('📥 GET /api/listings handler called with query:', req.query);
   try {
     const {
       q,           // text search
@@ -74,7 +75,10 @@ router.get('/', async (req, res) => {
       filter.$text = { $search: q };
     }
     if (category) filter.category = category;
-    if (condition) filter.condition = condition;
+    if (condition) {
+      const condArr = condition.split(',').map((c) => c.trim()).filter(Boolean);
+      if (condArr.length > 0) filter.condition = { $in: condArr };
+    }
     if (type) {
       filter.listingType = type === 'both' ? { $in: ['both', 'sell', 'rent'] } : { $in: [type, 'both'] };
     }
@@ -92,10 +96,14 @@ router.get('/', async (req, res) => {
       newest: { createdAt: -1 },
       oldest: { createdAt: 1 },
       price_asc: { price: 1 },
+      'price-asc': { price: 1 },
       price_desc: { price: -1 },
+      'price-desc': { price: -1 },
       popular: { views: -1 },
     };
-    const sortOpt = q ? { score: { $meta: 'textScore' }, ...sortMap[sort] } : sortMap[sort] || { createdAt: -1 };
+    const sortOpt = q
+      ? { score: { $meta: 'textScore' }, ...(sortMap[sort] || { createdAt: -1 }) }
+      : (sortMap[sort] || { createdAt: -1 });
 
     const skip = (Number(page) - 1) * Number(limit);
     const [listings, total] = await Promise.all([
@@ -103,15 +111,15 @@ router.get('/', async (req, res) => {
         .sort(sortOpt)
         .skip(skip)
         .limit(Number(limit))
-        // Only fetch the fields the browse grid needs — skip heavy fields
-        .select('title category condition listingType price rentalRate rentalDuration photos seller status createdAt views tags')
+        // Exclude heavy photos field so MongoDB JSON response returns in <100ms
+        .select('title category condition listingType price rentalRate rentalDuration seller status createdAt views tags')
         .populate('seller', 'firstName lastName branch year isVerified rating')
         .lean(),
       Listing.countDocuments(filter),
     ]);
 
-    // Generate inline thumbnails in parallel (no extra HTTP round-trips for browser)
-    const slimmed = await slimListingsWithThumbs(listings);
+    const slimmed = slimListingsWithThumbs(listings);
+    console.log('🚀 Slimmed listings ready, sending JSON response');
 
     res.json({
       listings: slimmed,
@@ -201,22 +209,38 @@ router.get('/seller/my', authMiddleware(), async (req, res) => {
 // cached aggressively by the CDN so list pages stay fast once warmed.
 router.get('/thumb/:id/:index', async (req, res) => {
   const index = Number(req.params.index) || 0;
-  const width = Number(req.query.w) || DEFAULT_THUMB;
   try {
-    const listing = await Listing.findById(req.params.id).select('photos').lean();
-    if (!listing || !Array.isArray(listing.photos) || !listing.photos[index]) {
+    const listing = await Listing.findById(req.params.id)
+      .slice('photos', [index, 1])
+      .select('photos')
+      .lean();
+
+    if (!listing || !Array.isArray(listing.photos) || !listing.photos[0]) {
       return res.status(404).json({ error: 'Image not found' });
     }
-    const thumb = await makeThumbnail(listing.photos[index], width);
-    if (!thumb) {
-      return res.status(404).json({ error: 'Image not found' });
+
+    const photo = listing.photos[0];
+    if (photo.startsWith('data:')) {
+      const commaIdx = photo.indexOf(',');
+      const mimeMatch = /^data:([^;,]+)/.exec(photo);
+      const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+      const imgBuf = Buffer.from(photo.slice(commaIdx + 1), 'base64');
+      res.set('Content-Type', mime);
+      res.set('Cache-Control', 'public, max-age=604800, immutable');
+      return res.send(imgBuf);
+    } else if (photo.startsWith('/uploads/')) {
+      const fs = require('fs');
+      const path = require('path');
+      const filePath = path.join(__dirname, '..', photo);
+      if (fs.existsSync(filePath)) {
+        res.set('Cache-Control', 'public, max-age=604800, immutable');
+        return res.sendFile(filePath);
+      }
     }
-    res.set('Content-Type', 'image/jpeg');
-    res.set('Cache-Control', 'public, max-age=604800, immutable');
-    res.send(thumb);
+    return res.status(404).json({ error: 'Image file not found' });
   } catch (err) {
     console.error('Thumbnail error:', err);
-    res.status(500).json({ error: 'Failed to generate thumbnail' });
+    res.status(500).json({ error: 'Failed to serve thumbnail' });
   }
 });
 

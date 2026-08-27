@@ -119,50 +119,14 @@ function thumbnailUrl(listingId, index = 0, width = DEFAULT_THUMB) {
  * `photoCount` so clients know how many images exist.
  */
 /**
- * Embed a tiny inline thumbnail for each listing so the browse page doesn't
- * need to fire N separate HTTP requests to /api/listings/thumb/…
- * width=200, quality=55 => ~4-8 KB per image — fast to send & render.
+ * Embed inline thumbnail for each listing instantly so browse cards render
+ * with 0 additional server roundtrips and 0 CPU overhead.
  */
-async function slimListingsWithThumbs(listings) {
-  const INLINE_WIDTH = 200;
-  const INLINE_QUALITY = 55;
-
-  await Promise.all(listings.map(async (l) => {
-    const count = Array.isArray(l.photos) ? l.photos.length : 0;
-    l.photoCount = count;
-    if (count === 0) {
-      l.thumbUrl = null;
-      l.photos = [];
-      return;
-    }
-    // Build inline thumb from the first photo
-    try {
-      const firstPhoto = l.photos[0];
-      let input;
-      if (firstPhoto && firstPhoto.startsWith('data:')) {
-        const m = /^data:[^;,]+;base64,(.*)$/.exec(firstPhoto);
-        input = m ? Buffer.from(m[1], 'base64') : null;
-      } else if (firstPhoto && firstPhoto.startsWith('/uploads/')) {
-        const fs = require('fs');
-        const path = require('path');
-        input = await fs.promises.readFile(path.join(__dirname, '..', firstPhoto)).catch(() => null);
-      }
-      if (input && input.length > 0) {
-        const buf = await sharp(input)
-          .rotate()
-          .resize({ width: INLINE_WIDTH, height: INLINE_WIDTH, fit: 'cover', withoutEnlargement: true })
-          .jpeg({ quality: INLINE_QUALITY })
-          .toBuffer();
-        l.thumbUrl = `data:image/jpeg;base64,${buf.toString('base64')}`;
-      } else {
-        l.thumbUrl = null;
-      }
-    } catch {
-      l.thumbUrl = null;
-    }
-    // Replace photos array with lightweight thumb-path URLs (for detail page)
-    l.photos = l.photos.map((_, i) => thumbnailUrl(l._id, i));
-  }));
+function slimListingsWithThumbs(listings) {
+  for (const l of listings) {
+    l.thumbUrl = `/api/listings/thumb/${l._id}/0`;
+    l.photos = [`/api/listings/thumb/${l._id}/0`];
+  }
   return listings;
 }
 
