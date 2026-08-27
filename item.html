@@ -141,7 +141,7 @@
   <!-- Gallery -->
   <div class="gallery-col">
     <div class="main-image" id="main-image-wrap">
-      <img src="" alt="Item photo" id="main-img" style="background:var(--surface-container);"/>
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='400' viewBox='0 0 500 400'%3E%3Crect width='100%25' height='100%25' fill='%23f1f3f4'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%235f6368' font-family='sans-serif' font-size='16'%3ECampusKart Item Photo%3C/text%3E%3C/svg%3E" alt="Item photo" id="main-img" style="background:var(--surface-container);" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'500\' height=\'400\' viewBox=\'0 0 500 400\'%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'%23f1f3f4\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%235f6368\' font-family=\'sans-serif\' font-size=\'16\'%3ECampusKart Item Photo%3C/text%3E%3C/svg%3E';"/>
       <div class="main-image__badges" id="item-badges"></div>
     </div>
     <div class="thumbnails" id="thumbs-container">
@@ -443,15 +443,34 @@ async function loadSimilarItems(category, currentId) {
     </a>`;
 }
 
+function showItemNotFound() {
+  document.title = 'Item Not Found | CampusKart';
+  const layout = document.querySelector('.item-layout');
+  if (layout) {
+    layout.innerHTML = `
+      <div style="grid-column:1/-1; width:100%; text-align:center; padding:64px 24px; background:var(--surface-container-low); border-radius:24px; margin:20px auto; max-width:600px; border:1px solid var(--outline-variant);">
+        <span class="material-symbols-outlined" style="font-size:64px; color:var(--primary); margin-bottom:16px;">error_outline</span>
+        <h2 style="font-family:'Sora',sans-serif; font-size:24px; font-weight:700; margin-bottom:12px;">Listing Not Found</h2>
+        <p style="color:var(--on-surface-variant); font-size:15px; line-height:1.6; margin-bottom:28px;">This item may have been sold, removed by the seller, or the URL contains an invalid ID.</p>
+        <a href="browse.html" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:8px; padding:12px 24px; text-decoration:none;">
+          <span class="material-symbols-outlined">explore</span> Explore All Listings
+        </a>
+      </div>
+    `;
+  }
+}
+
 async function loadItemDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const id = urlParams.get('id');
-  if (!id) return;
+  if (!id) {
+    showItemNotFound();
+    return;
+  }
 
   const res = await API.listings.getById(id);
   if (!res.ok || !res.listing) {
-    document.getElementById('detail-title').textContent = 'Item not found';
-    document.getElementById('detail-description').textContent = 'This listing may have been removed or is no longer available.';
+    showItemNotFound();
     return;
   }
 

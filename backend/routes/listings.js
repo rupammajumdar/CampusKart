@@ -289,7 +289,8 @@ router.get('/:id', authMiddleware({ optional: true }), async (req, res) => {
     Listing.updateOne({ _id: listing._id }, { $inc: { views: 1 } }).exec();
 
     // If requester is the owner, show all statuses; otherwise hide draft/pending
-    if (req.user && listing.seller._id.toString() === req.user._id.toString()) {
+    const sellerId = listing.seller?._id ? listing.seller._id.toString() : listing.seller?.toString();
+    if (req.user && sellerId && sellerId === req.user._id.toString()) {
       return res.json({ listing });
     }
     if (['draft', 'pending'].includes(listing.status)) {
