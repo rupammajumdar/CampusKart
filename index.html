@@ -281,6 +281,45 @@
   </div>
 </div>
 
+<!-- Google Auth Modal -->
+<div class="modal-overlay" id="google-auth-modal">
+  <div class="modal" style="max-width:400px; text-align:center; position:relative; padding:32px 24px; border-radius:24px;">
+    <button class="modal__close" onclick="document.getElementById('google-auth-modal').classList.remove('open')">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    
+    <div style="margin-bottom:16px;">
+      <svg width="48" height="48" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.74L.97 13.04C2.45 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.78c-.19-.53-.3-1.1-.3-1.78s.11-1.25.3-1.78L.97 4.96C.35 6.18 0 7.55 0 9s.35 2.82.97 4.04l2.9-2.26z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59C13.46.89 11.43 0 9 0 5.48 0 2.45 2.02.97 4.96l2.9 2.26C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
+    </div>
+    
+    <h2 style="font-family:'Sora',sans-serif; font-size:22px; font-weight:700; margin-bottom:8px;">Sign in with Google</h2>
+    <p style="font-size:13px; color:var(--on-surface-variant); margin-bottom:20px;">Use your Google Account to sign in or create your CampusKart student profile instantly.</p>
+
+    <!-- Native GIS Render Container -->
+    <div id="google-gis-container" style="display:flex; justify-content:center; margin-bottom:16px;"></div>
+
+    <form onsubmit="submitGoogleModal(event)" style="display:flex; flex-direction:column; gap:12px; text-align:left;">
+      <div class="form-group">
+        <label class="form-label" for="g-email">Google Email Address</label>
+        <div class="input-with-icon">
+          <span class="material-symbols-outlined input-icon">mail</span>
+          <input class="input-field" type="email" id="g-email" placeholder="your.name@gmail.com" required/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="g-name">Your Full Name (Optional)</label>
+        <div class="input-with-icon">
+          <span class="material-symbols-outlined input-icon">person</span>
+          <input class="input-field" type="text" id="g-name" placeholder="e.g. Rahul Sharma"/>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" type="submit" style="margin-top:8px;">
+        Continue &amp; Sign In
+      </button>
+    </form>
+  </div>
+</div>
+
 <!-- Toast container -->
 <div id="toast-container"></div>
 
@@ -425,24 +464,34 @@
   }
 
   function promptGoogleSignIn() {
-    if (window.google && window.google.accounts && window.google.accounts.id) {
-      window.google.accounts.id.prompt();
+    const modal = document.getElementById('google-auth-modal');
+    if (modal) {
+      modal.classList.add('open');
+      const input = document.getElementById('g-email');
+      if (input) setTimeout(() => input.focus(), 150);
+    }
+  }
+
+  async function submitGoogleModal(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const email = document.getElementById('g-email').value.trim();
+    const name = document.getElementById('g-name').value.trim();
+
+    if (!email || !email.includes('@')) {
+      API.toast('Please enter a valid Google email address', 'error');
+      return;
+    }
+
+    API.toast('Signing in with Google…', 'info');
+    const res = await API.auth.googleLogin({ email, name: name || email.split('@')[0] });
+    if (res.ok && res.token) {
+      API.setToken(res.token);
+      API.setUser(res.user);
+      API.toast('Welcome, ' + res.user.firstName + '!', 'success');
+      const targetPage = res.user.role === 'admin' ? 'admin.html' : 'home.html';
+      setTimeout(() => window.location.href = targetPage, 800);
     } else {
-      const email = prompt('Enter your Google email address to sign in:');
-      if (email && email.includes('@')) {
-        const name = prompt('Enter your name:', email.split('@')[0]);
-        API.auth.googleLogin({ email, name: name || email.split('@')[0] }).then(res => {
-          if (res.ok && res.token) {
-            API.setToken(res.token);
-            API.setUser(res.user);
-            API.toast('Welcome, ' + res.user.firstName + '!', 'success');
-            const targetPage = res.user.role === 'admin' ? 'admin.html' : 'home.html';
-            setTimeout(() => window.location.href = targetPage, 800);
-          } else {
-            API.toast(res.error || 'Google sign-in failed', 'error');
-          }
-        });
-      }
+      API.toast(res.error || 'Google sign-in failed', 'error');
     }
   }
 
@@ -453,6 +502,14 @@
         callback: handleGoogleCallback,
         auto_select: false,
       });
+      const container = document.getElementById('google-gis-container');
+      if (container) {
+        window.google.accounts.id.renderButton(container, {
+          theme: 'outline',
+          size: 'large',
+          width: 250
+        });
+      }
     }
   });
 </script>
