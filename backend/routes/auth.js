@@ -253,7 +253,7 @@ router.post('/login', async (req, res) => {
 // Google OAuth Sign In & Auto Registration
 router.post('/google', async (req, res) => {
   try {
-    const { credential, email, name, picture } = req.body;
+    const { credential, email, name, picture, branch, year } = req.body;
 
     let userEmail = email ? email.trim().toLowerCase() : null;
     let firstName = 'Student';
@@ -290,28 +290,30 @@ router.post('/google', async (req, res) => {
         firstName,
         lastName,
         email: userEmail,
-        branch: 'CSE',
-        year: '2nd Year',
-        profilePhoto,
+        branch: branch || 'Other',
+        year: year || '1st Year',
+        profilePhoto: profilePhoto || '',
         isVerified: true,
         isLister: true,
       });
+    } else {
+      // Auto-verify existing account if signing in via Google
+      let updated = false;
+      if (!user.isVerified) { user.isVerified = true; updated = true; }
+      if (!user.isLister) { user.isLister = true; updated = true; }
+      if (profilePhoto && !user.profilePhoto) { user.profilePhoto = profilePhoto; updated = true; }
+      if (updated) await user.save();
     }
 
     if (user.isBanned) {
       return res.status(403).json({ error: 'Your account has been suspended' });
     }
 
-    if (profilePhoto && !user.profilePhoto) {
-      user.profilePhoto = profilePhoto;
-      await user.save();
-    }
-
     const token = generateJWT(user._id);
     res.json({ token, user: user.toPublicJSON() });
   } catch (err) {
     console.error('Google auth error:', err);
-    res.status(500).json({ error: 'Google authentication failed' });
+    res.status(500).json({ error: err.message || 'Google authentication failed' });
   }
 });
 
