@@ -389,28 +389,21 @@ router.post('/listings', async (req, res) => {
   }
 });
 
-// ─── GET /api/admin/announcements ────────────────────────────────────────────
-// Public — no auth needed, used by home.html banner
-const fs = require('fs');
-const announcementFile = require('path').join(__dirname, '..', '..', 'announcement.json');
+// ─── Announcement routes (MongoDB-backed, works on Vercel) ────────────────────
+const Announcement = require('../models/Announcement');
 
+// GET /api/admin/announcements — admin can view all announcements
 router.get('/announcements', async (req, res) => {
   try {
-    if (!fs.existsSync(announcementFile)) {
-      return res.json({ announcement: null });
-    }
-    const data = JSON.parse(fs.readFileSync(announcementFile, 'utf8'));
-    // Check expiry
-    if (data.expiresAt && new Date(data.expiresAt) < new Date()) {
-      return res.json({ announcement: null });
-    }
-    res.json({ announcement: data });
-  } catch {
-    res.json({ announcement: null });
+    const announcements = await Announcement.find().sort({ createdAt: -1 }).limit(10);
+    const active = announcements.find(a => a.isActive && (!a.expiresAt || new Date(a.expiresAt) > new Date()));
+    res.json({ announcement: active || null, announcements });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch announcements' });
   }
 });
 
-// ─── POST /api/admin/announcements ───────────────────────────────────────────
+// POST /api/admin/announcements — publish a new announcement
 router.post('/announcements', async (req, res) => {
   try {
     const { text, duration } = req.body;
@@ -419,30 +412,32 @@ router.post('/announcements', async (req, res) => {
     }
 
     let expiresAt = null;
-    if (duration === '1 Day') expiresAt = new Date(Date.now() + 86400000).toISOString();
-    else if (duration === '3 Days') expiresAt = new Date(Date.now() + 3 * 86400000).toISOString();
-    else if (duration === '1 Week') expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
+    if (duration === '1 Day') expiresAt = new Date(Date.now() + 86400000);
+    else if (duration === '3 Days') expiresAt = new Date(Date.now() + 3 * 86400000);
+    else if (duration === '1 Week') expiresAt = new Date(Date.now() + 7 * 86400000);
 
-    const announcement = {
+    // Deactivate any existing active announcements
+    await Announcement.updateMany({ isActive: true }, { isActive: false });
+
+    const announcement = await Announcement.create({
       text: text.trim(),
       duration: duration || 'Show until dismissed',
       expiresAt,
-      publishedAt: new Date().toISOString(),
       publishedBy: req.user?.email || 'admin',
-    };
+      isActive: true,
+    });
 
-    fs.writeFileSync(announcementFile, JSON.stringify(announcement, null, 2), 'utf8');
     res.json({ ok: true, announcement });
   } catch (err) {
     console.error('Announcement publish error:', err);
-    res.status(500).json({ error: 'Failed to publish announcement' });
+    res.status(500).json({ error: err.message || 'Failed to publish announcement' });
   }
 });
 
-// ─── DELETE /api/admin/announcements ────────────────────────────────────────
+// DELETE /api/admin/announcements — deactivate current announcement
 router.delete('/announcements', async (req, res) => {
   try {
-    if (fs.existsSync(announcementFile)) fs.unlinkSync(announcementFile);
+    await Announcement.updateMany({ isActive: true }, { isActive: false });
     res.json({ ok: true, message: 'Announcement cleared' });
   } catch {
     res.json({ ok: true });

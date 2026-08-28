@@ -102,17 +102,16 @@ app.use('/api/admin', adminRoutes);
 app.use('/admin', adminRoutes);
 
 // ─── Public announcement endpoint (no auth required) ──────────────────────────
-const _fs = require('fs');
-const _announcementFile = path.join(__dirname, '..', 'announcement.json');
+const Announcement = require('./models/Announcement');
 
-app.get(['/api/announcements', '/announcements'], (req, res) => {
+app.get(['/api/announcements', '/announcements'], async (req, res) => {
   try {
-    if (!_fs.existsSync(_announcementFile)) return res.json({ announcement: null });
-    const data = JSON.parse(_fs.readFileSync(_announcementFile, 'utf8'));
-    if (data.expiresAt && new Date(data.expiresAt) < new Date()) {
-      return res.json({ announcement: null });
-    }
-    res.json({ announcement: data });
+    const now = new Date();
+    const active = await Announcement.findOne({
+      isActive: true,
+      $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }]
+    }).sort({ createdAt: -1 });
+    res.json({ announcement: active || null });
   } catch {
     res.json({ announcement: null });
   }
