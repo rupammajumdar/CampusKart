@@ -142,10 +142,10 @@
 </div>
 
 <!-- Announcement banner -->
-<div class="announcement-banner" id="banner">
+<div class="announcement-banner" id="banner" style="display:none;">
   <span class="material-symbols-outlined" style="font-size:18px">campaign</span>
-  <span>🎉 New batch welcome! List your lab kits &amp; earn extra this semester.</span>
-  <button onclick="document.getElementById('banner').remove()" style="margin-left:12px; opacity:0.7; font-size:18px;">×</button>
+  <span id="banner-text"></span>
+  <button onclick="document.getElementById('banner').style.display='none'" style="margin-left:12px; opacity:0.7; font-size:18px;">×</button>
 </div>
 
 <!-- Top Nav -->
@@ -439,6 +439,24 @@
 
   loadHomeListings();
   loadLiveStats();
+
+  // Load admin-published announcement banner
+  async function loadAnnouncement() {
+    try {
+      const res = await API.publicAnnouncement.get();
+      if (res && res.announcement && res.announcement.text) {
+        const banner = document.getElementById('banner');
+        const bannerText = document.getElementById('banner-text');
+        if (banner && bannerText) {
+          bannerText.textContent = res.announcement.text;
+          banner.style.display = 'flex';
+        }
+      }
+    } catch (e) {
+      // No announcement or network error — silently hide banner
+    }
+  }
+  loadAnnouncement();
 </script>
 </body>
 </html>

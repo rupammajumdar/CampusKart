@@ -389,4 +389,64 @@ router.post('/listings', async (req, res) => {
   }
 });
 
+// ─── GET /api/admin/announcements ────────────────────────────────────────────
+// Public — no auth needed, used by home.html banner
+const fs = require('fs');
+const announcementFile = require('path').join(__dirname, '..', '..', 'announcement.json');
+
+router.get('/announcements', async (req, res) => {
+  try {
+    if (!fs.existsSync(announcementFile)) {
+      return res.json({ announcement: null });
+    }
+    const data = JSON.parse(fs.readFileSync(announcementFile, 'utf8'));
+    // Check expiry
+    if (data.expiresAt && new Date(data.expiresAt) < new Date()) {
+      return res.json({ announcement: null });
+    }
+    res.json({ announcement: data });
+  } catch {
+    res.json({ announcement: null });
+  }
+});
+
+// ─── POST /api/admin/announcements ───────────────────────────────────────────
+router.post('/announcements', async (req, res) => {
+  try {
+    const { text, duration } = req.body;
+    if (!text || !text.trim()) {
+      return res.status(400).json({ error: 'Announcement text is required' });
+    }
+
+    let expiresAt = null;
+    if (duration === '1 Day') expiresAt = new Date(Date.now() + 86400000).toISOString();
+    else if (duration === '3 Days') expiresAt = new Date(Date.now() + 3 * 86400000).toISOString();
+    else if (duration === '1 Week') expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
+
+    const announcement = {
+      text: text.trim(),
+      duration: duration || 'Show until dismissed',
+      expiresAt,
+      publishedAt: new Date().toISOString(),
+      publishedBy: req.user?.email || 'admin',
+    };
+
+    fs.writeFileSync(announcementFile, JSON.stringify(announcement, null, 2), 'utf8');
+    res.json({ ok: true, announcement });
+  } catch (err) {
+    console.error('Announcement publish error:', err);
+    res.status(500).json({ error: 'Failed to publish announcement' });
+  }
+});
+
+// ─── DELETE /api/admin/announcements ────────────────────────────────────────
+router.delete('/announcements', async (req, res) => {
+  try {
+    if (fs.existsSync(announcementFile)) fs.unlinkSync(announcementFile);
+    res.json({ ok: true, message: 'Announcement cleared' });
+  } catch {
+    res.json({ ok: true });
+  }
+});
+
 module.exports = router;

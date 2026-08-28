@@ -260,7 +260,7 @@
         <div style="display:flex; flex-direction:column; gap:16px;">
           <div class="form-group">
             <label class="form-label">Banner Text</label>
-            <input class="input-field" type="text" id="announce-text" placeholder="e.g. Placement season listings — submit early for faster approval!" value="🎉 New batch welcome! List your lab kits &amp; earn extra this semester."/>
+            <input class="input-field" type="text" id="announce-text" placeholder="e.g. Placement season listings — submit early for faster approval!" value="🎉 New batch welcome! List your lab kits &amp; earn extra this semester." oninput="document.getElementById('announce-preview').textContent = this.value"/>
           </div>
           <div class="form-group">
             <label class="form-label">Display Duration</label>
@@ -293,7 +293,7 @@
             <button class="btn btn-primary" onclick="publishAnnouncement()">
               <span class="material-symbols-outlined">send</span> Publish Announcement
             </button>
-            <button class="btn btn-surface" onclick="showToast('Announcement cleared')">Clear Current</button>
+            <button class="btn btn-surface" onclick="clearAnnouncement()">Clear Current</button>
           </div>
         </div>
       </div>
@@ -524,6 +524,28 @@ async function loadAdminData() {
 }
 
 loadAdminData();
+
+async function publishAnnouncement() {
+  const text = document.getElementById('announce-text').value.trim();
+  const duration = document.getElementById('announce-duration').value;
+  if (!text) { API.toast('Please enter announcement text', 'error'); return; }
+
+  const res = await API.admin.announce(text, duration);
+  if (res.ok) {
+    API.toast('✅ Announcement published successfully!', 'success');
+  } else {
+    API.toast(res.error || 'Failed to publish announcement', 'error');
+  }
+}
+
+async function clearAnnouncement() {
+  const res = await API.admin.clearAnnouncement();
+  if (res.ok) {
+    API.toast('Announcement cleared', 'info');
+  } else {
+    API.toast(res.error || 'Failed to clear announcement', 'error');
+  }
+}
 </script>
 </body>
 </html>

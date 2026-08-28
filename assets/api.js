@@ -182,6 +182,14 @@ const API = (() => {
     reports: (status) => get(`/admin/reports?status=${status || 'open'}`),
     resolveReport: (id, action, note) => post(`/admin/reports/${id}/resolve`, { action, note }),
     analytics: () => get('/admin/analytics'),
+    announce: (text, duration) => post('/admin/announcements', { text, duration }),
+    clearAnnouncement: () => request('DELETE', '/admin/announcements'),
+    getAnnouncements: () => get('/admin/announcements'),
+  };
+
+  // ─── Public Announcements ────────────────────────────────────────────────
+  const publicAnnouncement = {
+    get: () => get('/announcements'),
   };
 
   // ─── Toast notification ──────────────────────────────────────────────────
@@ -304,7 +312,7 @@ const API = (() => {
     // Session
     getToken, setToken, getUser, setUser, clearSession, isLoggedIn, requireAuth, checkUrlToken, logout,
     // Resources
-    auth, users, listings, messages, transactions, admin,
+    auth, users, listings, messages, transactions, admin, publicAnnouncement,
     // Utilities
     toast, formatPrice, timeAgo, listingPhoto, userAvatar,
   };
